@@ -1,5 +1,11 @@
 import streamlit as st
 import pandas as pd
+import os
+
+# Installazione delle librerie mancanti
+if not os.system("pip show pandas-profiling > /dev/null 2>&1"):
+    os.system("pip install pandas-profiling streamlit-pandas-profiling")
+
 import pandas_profiling
 from streamlit_pandas_profiling import st_profile_report
 
@@ -8,7 +14,7 @@ st.set_page_config(page_title="MAR Algorithm", page_icon="🤓")
 
 # Titolo e logo dell'applicazione
 st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
-st.title("MAR Algorithm")
+st.title("Interfaccia")
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
