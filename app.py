@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="MAR Algorithm", page_icon="🧠")
 
 # Titolo e logo dell'applicazione
-st.image("https://ibb.co/PmZrfPR", width=150)
+st.image("https://i.ibb.co/tmMHWvS/mar-high-resolution-logo.jpg", width=150)
 st.title("MAR Algorithm")
 
 # Caricamento del file
