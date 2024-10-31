@@ -1,13 +1,17 @@
 import streamlit as st
 import pandas as pd
-import os
+import subprocess
+import sys
 
 # Installazione delle librerie mancanti
-if not os.system("pip show pandas-profiling > /dev/null 2>&1"):
-    os.system("pip install pandas-profiling streamlit-pandas-profiling")
-
-import pandas_profiling
-from streamlit_pandas_profiling import st_profile_report
+try:
+    import pandas_profiling
+    from streamlit_pandas_profiling import st_profile_report
+except ModuleNotFoundError:
+    st.info("Installazione delle librerie necessarie...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas-profiling", "streamlit-pandas-profiling"])
+    import pandas_profiling
+    from streamlit_pandas_profiling import st_profile_report
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🤓")
