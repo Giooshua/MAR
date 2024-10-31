@@ -1,4 +1,4 @@
-<p align="center">![Logo](https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png)</p>
+![Logo](https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png){ width="800" height="600" style="display: block; margin: 0 auto" }
 
 # **MAR Interface**
 
