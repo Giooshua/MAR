@@ -42,7 +42,7 @@ if uploaded_file is not None:
             st.markdown("**Controllo dei Valori Mancanti**")
             missing_data = dataset.isnull().sum()
             total_missing = missing_data.sum()
-            total_values = dataset.size
+            total_values = dataset.shape[0] * dataset.shape[1]
             missing_percentage = total_missing / total_values
 
             if total_missing > 0:
@@ -54,7 +54,7 @@ if uploaded_file is not None:
                 elif missing_percentage > 0.1:
                     st.warning("I dati mancanti non sono uniformemente distribuiti. Si consiglia l'uso di tecniche avanzate di imputazione come l'imputazione iterativa.")
                 elif missing_percentage > 0.05:
-                    st.info("L'imputazione con media o mediana potrebbe essere sufficiente per gestire i dati mancanti.")
+                    st.warning("La percentuale di dati mancanti è significativa. Si consiglia l'uso dell'imputazione con media o mediana per gestire i dati mancanti.")
                 else:
                     st.info("La quantità di dati mancanti è relativamente bassa. L'imputazione semplice potrebbe essere appropriata.")
 
