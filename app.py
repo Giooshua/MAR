@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="MAR Algorithm", page_icon="🧠")
 
 # Titolo e logo dell'applicazione
-st.image("https://i.ibb.co/bXfQfgq/mar-high-resolution-logo.jpg", width=200)
+st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
 st.title("MAR Algorithm")
 
 # STEP 1: Caricamento del Dataset
