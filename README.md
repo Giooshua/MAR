@@ -1,3 +1,5 @@
+![Logo](https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png)
+
 # **MAR Interface**
 
 The *MAR (Method-Approach-Recommendation) interface* is a Streamlit-based user-friendly web application meant to provide a preliminary statistical overview on a given dataset. The primary goal is to assist users in selecting the most appropriate machine learning method based on the provided data: the application analyzes the dataset, performs quality checks, identifies variable types, and provides recommendations on which statistical method is the most appropriate to conduct an analysis. Each algorithmic step is treated as an easily editable block, in order to further provide adjustments and fine-tuning on thresholds and criterias chosen for this project.
