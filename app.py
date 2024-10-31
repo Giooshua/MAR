@@ -14,12 +14,8 @@ uploaded_file = st.file_uploader("Carica il tuo dataset (.csv, .txt)", type=["cs
 def load_dataset(uploaded_file, delimiter=None):
     try:
         if uploaded_file.name.endswith('.csv') or uploaded_file.name.endswith('.txt'):
-            if delimiter:
-                df = pd.read_csv(uploaded_file, delimiter=delimiter)
-            else:
-                df = pd.read_csv(uploaded_file)  # Tentativo di auto-detection del delimitatore
-                else:
-            st.error("Formato del file non supportato. Supportati: .csv, .xls, .xlsx, .txt")
+            df = pd.read_csv(uploaded_file)  # Tentativo di auto-detection del delimitatore
+        else:
             return None
         return df
     except Exception as e:
@@ -32,7 +28,5 @@ if uploaded_file is not None:
     if dataset is not None:
         st.success(f"Dataset caricato con successo! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
         st.write(dataset.head())
-
-        
     else:
         st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
