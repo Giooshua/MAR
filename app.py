@@ -1,17 +1,7 @@
 import streamlit as st
 import pandas as pd
-import subprocess
-import sys
-
-# Installazione delle librerie mancanti
-try:
-    import pandas_profiling
-    from streamlit_pandas_profiling import st_profile_report
-except ModuleNotFoundError:
-    st.info("Installazione delle librerie necessarie...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas-profiling", "streamlit-pandas-profiling"])
-    import pandas_profiling
-    from streamlit_pandas_profiling import st_profile_report
+import pandas_profiling
+from streamlit_pandas_profiling import st_profile_report
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🤓")
@@ -56,8 +46,11 @@ if uploaded_file is not None:
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
             # Utilizzo di pandas profiling per creare una panoramica del dataset
-            profile = dataset.profile_report(title="Profilo del Dataset", explorative=True)
-            st_profile_report(profile)
+            try:
+                profile = dataset.profile_report(title="Profilo del Dataset", explorative=True)
+                st_profile_report(profile)
+            except ModuleNotFoundError:
+                st.error("Per utilizzare questa funzionalità, assicurati di aver installato 'pandas-profiling' e 'streamlit-pandas-profiling' nel tuo ambiente.")
 
     else:
         st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
