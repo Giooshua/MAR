@@ -41,9 +41,8 @@ if uploaded_file is not None:
             # Controllo dei dati mancanti
             st.markdown("**Controllo dei Valori Mancanti**")
             missing_data = dataset.isnull().sum()
-            total_missing = missing_data.sum()
-            total_values = dataset.shape[0] * dataset.shape[1]
-            missing_percentage = total_missing / total_values
+            total_values = dataset.shape[0]
+            missing_percentage = missing_data / total_values
 
             if total_missing > 0:
                 st.warning(f"Il dataset contiene {total_missing} valori mancanti, pari al {missing_percentage:.2%} del totale.")
