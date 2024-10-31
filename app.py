@@ -9,29 +9,15 @@ st.image("https://via.placeholder.com/150", width=150)
 st.title("MAR Algorithm - Caricamento Dataset")
 
 # Caricamento del file
-delimiter_option = st.selectbox(
-    "Seleziona il delimitatore per i file di testo:",
-    options=["Tab (\t)", "Virgola (,)", "Punto e virgola (;)", "Spazio ( )"],
-    index=0
-)
-
-if delimiter_option == "Tab (\t)":
-    delimiter = '\t'
-elif delimiter_option == "Virgola (,)":
-    delimiter = ','
-elif delimiter_option == "Punto e virgola (;)":
-    delimiter = ';'
-elif delimiter_option == "Spazio ( )":
-    delimiter = ' '
-else:
-    delimiter = None
-
 uploaded_file = st.file_uploader("Carica il tuo dataset (.csv, .xls, .xlsx, .txt)", type=["csv", "xls", "xlsx", "txt"])
 
-def load_dataset(uploaded_file):
+def load_dataset(uploaded_file, delimiter=None):
     try:
         if uploaded_file.name.endswith('.csv') or uploaded_file.name.endswith('.txt'):
-            df = pd.read_csv(uploaded_file, delimiter=delimiter)
+            if delimiter:
+                df = pd.read_csv(uploaded_file, delimiter=delimiter)
+            else:
+                df = pd.read_csv(uploaded_file)  # Tentativo di auto-detection del delimitatore
         elif uploaded_file.name.endswith(('.xls', '.xlsx')):
             df = pd.read_excel(uploaded_file, engine='openpyxl')  # Supporto per xlsx
         else:
@@ -48,5 +34,20 @@ if uploaded_file is not None:
     if dataset is not None:
         st.success(f"Dataset caricato con successo! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
         st.write(dataset.head())
+
+        # Mostra i bottoni per selezionare il delimitatore manualmente
+        st.subheader("Seleziona un delimitatore per modificare la visualizzazione del dataset:")
+        if uploaded_file.name.endswith('.csv') or uploaded_file.name.endswith('.txt'):
+            delimiters = {
+                "Tab (\t)": '\t',
+                "Virgola (,)": ',',
+                "Punto e virgola (;)": ';',
+                "Spazio ( )": ' '
+            }
+            for label, delim in delimiters.items():
+                if st.button(label):
+                    dataset = load_dataset(uploaded_file, delimiter=delim)
+                    if dataset is not None:
+                        st.write(dataset.head())
     else:
         st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
