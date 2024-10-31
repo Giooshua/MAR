@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="MAR Algorithm", page_icon="🧠")
 
 # Titolo e logo dell'applicazione
-st.image("https://via.placeholder.com/150", width=150)
+st.image("https://i.ibb.co/bXfQfgq/mar-high-resolution-logo.jpg", width=200)
 st.title("MAR Algorithm")
 
 # STEP 1: Caricamento del Dataset
@@ -42,15 +42,22 @@ if uploaded_file is not None:
             st.markdown("**Controllo dei Valori Mancanti**")
             missing_data = dataset.isnull().sum()
             total_missing = missing_data.sum()
+            total_values = dataset.size
+            missing_percentage = total_missing / total_values
+
             if total_missing > 0:
-                st.warning(f"Il dataset contiene {total_missing} valori mancanti.")
+                st.warning(f"Il dataset contiene {total_missing} valori mancanti, pari al {missing_percentage:.2%} del totale.")
                 st.write(missing_data[missing_data > 0])
-                if total_missing / dataset.size > 0.3:
-                    st.error("La qualità del dataset è troppo bassa a causa dell'elevata percentuale di valori mancanti. Si consiglia di interrompere l'analisi.")
-                elif total_missing / dataset.size > 0.1:
+
+                if missing_percentage > 0.3:
+                    st.error("La qualità del dataset è troppo bassa a causa dell'elevata percentuale di valori mancanti. Si consiglia di interrompere l'analisi o di acquisire nuovi dati.")
+                elif missing_percentage > 0.1:
                     st.warning("I dati mancanti non sono uniformemente distribuiti. Si consiglia l'uso di tecniche avanzate di imputazione come l'imputazione iterativa.")
-                elif total_missing / dataset.size > 0.05:
+                elif missing_percentage > 0.05:
                     st.info("L'imputazione con media o mediana potrebbe essere sufficiente per gestire i dati mancanti.")
+                else:
+                    st.info("La quantità di dati mancanti è relativamente bassa. L'imputazione semplice potrebbe essere appropriata.")
+
                 st.markdown("**Distribuzione dei Valori Mancanti**")
                 st.bar_chart(missing_data[missing_data > 0])
             else:
