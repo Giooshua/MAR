@@ -14,14 +14,12 @@ st.title("Interfaccia")
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
 
-uploaded_file = st.file_uploader("Carica il tuo dataset (.csv, .txt, .xlsx)", type=["csv", "txt", "xlsx"])
+uploaded_file = st.file_uploader("Carica il tuo dataset (.csv, .txt)", type=["csv", "txt"])
 
 def load_dataset(uploaded_file, delimiter=','):
     try:
         if uploaded_file.name.endswith('.csv') or uploaded_file.name.endswith('.txt'):
             df = pd.read_csv(uploaded_file, delimiter=delimiter)
-        elif uploaded_file.name.endswith('.xlsx'):
-            df = pd.read_excel(uploaded_file)
         else:
             return None
         return df
@@ -41,8 +39,10 @@ if uploaded_file is not None:
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
         if proceed_to_step_2:
-            with st.spinner('Caricamento...'):
-                time.sleep(2)  # Simulazione del tempo di caricamento
+            with st.spinner(''):
+                with st.empty():
+                    st.markdown("<div style='display: inline-block;'><button style='margin-right: 10px;'>Caricamento...</button><div class='spinner-border' role='status'></div></div>", unsafe_allow_html=True)
+                    time.sleep(2)  # Simulazione del tempo di caricamento
 
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
