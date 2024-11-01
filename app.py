@@ -41,10 +41,8 @@ if uploaded_file is not None:
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
         if proceed_to_step_2:
-            with st.spinner():
-                with st.empty():
-                    st.markdown("&nbsp;", unsafe_allow_html=True)
-                    time.sleep(2)  # Simulazione del tempo di caricamento
+            with st.spinner('Caricamento...'):
+                time.sleep(2)  # Simulazione del tempo di caricamento
 
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
