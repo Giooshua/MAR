@@ -43,46 +43,51 @@ if uploaded_file is not None:
             st.info("Passaggio allo Step 2: Panoramica Esplorativa del Dataset...")
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
-            st.write("**Tipologia delle variabili:**")
-            def categorize_variable(column):
-                if dataset[column].dtype in ['float64', 'float32']:
-                    return 'Quantitativa - Continua'
-                elif dataset[column].dtype in ['int64', 'int32']:
-                    return 'Quantitativa - Discreta'
-                elif dataset[column].nunique() == 2:
-                    return 'Binaria'
+            # Creazione della dashboard interattiva
+            tab1, tab2, tab3 = st.tabs(["Tipologia delle Variabili", "Statistiche Descrittive", "Visualizzazioni"])
+
+            with tab1:
+                st.write("**Tipologia delle variabili:**")
+                def categorize_variable(column):
+                    if dataset[column].dtype in ['float64', 'float32']:
+                        return 'Quantitativa - Continua'
+                    elif dataset[column].dtype in ['int64', 'int32']:
+                        return 'Quantitativa - Discreta'
+                    elif dataset[column].nunique() == 2:
+                        return 'Binaria'
+                    else:
+                        return 'Categorica - Nominale'
+
+                variable_types = pd.DataFrame({
+                    'Colonna': dataset.columns,
+                    'Tipo': dataset.dtypes,
+                    'Categoria': dataset.columns.map(categorize_variable)
+                })
+                st.write(variable_types)
+
+            with tab2:
+                st.write("**Statistiche descrittive del dataset:**")
+                descriptive_stats = dataset.describe()
+                st.write(descriptive_stats)
+
+            with tab3:
+                st.write("**Visualizzazione delle Distribuzioni delle Variabili Numeriche:**")
+                numeric_columns = dataset.select_dtypes(include=['number']).columns
+                if len(numeric_columns) > 0:
+                    for column in numeric_columns:
+                        fig, ax = plt.subplots(figsize=(10, 6))
+                        sns.histplot(dataset[column], kde=True, ax=ax, bins=15)
+                        ax.set_title(f"Distribuzione di {column}")
+                        st.pyplot(fig)
                 else:
-                    return 'Categorica - Nominale'
+                    st.write("Nessuna variabile numerica disponibile per la visualizzazione.")
 
-            variable_types = pd.DataFrame({
-                'Colonna': dataset.columns,
-                'Tipo': dataset.dtypes,
-                'Categoria': dataset.columns.map(categorize_variable)
-            })
-            st.write(variable_types)
-
-            st.write("**Statistiche descrittive del dataset:**")
-            descriptive_stats = dataset.describe()
-            st.write(descriptive_stats)
-
-            # Visualizzazioni con Matplotlib e Seaborn
-            st.write("**Visualizzazione delle Distribuzioni delle Variabili Numeriche:**")
-            numeric_columns = dataset.select_dtypes(include=['number']).columns
-            if len(numeric_columns) > 0:
-                for column in numeric_columns:
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    sns.histplot(dataset[column], kde=True, ax=ax, bins=15)
-                    ax.set_title(f"Distribuzione di {column}")
+                st.write("**Heatmap delle Correlazioni:**")
+                if len(numeric_columns) > 1:
+                    fig, ax = plt.subplots(figsize=(10, 8))
+                    sns.heatmap(dataset[numeric_columns].corr(), annot=True, cmap='coolwarm', ax=ax)
                     st.pyplot(fig)
-            else:
-                st.write("Nessuna variabile numerica disponibile per la visualizzazione.")
-
-            st.write("**Heatmap delle Correlazioni:**")
-            if len(numeric_columns) > 1:
-                fig, ax = plt.subplots(figsize=(10, 8))
-                sns.heatmap(dataset[numeric_columns].corr(), annot=True, cmap='coolwarm', ax=ax)
-                st.pyplot(fig)
-            else:
-                st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
+                else:
+                    st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
     else:
         st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
