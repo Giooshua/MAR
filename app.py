@@ -39,15 +39,13 @@ if uploaded_file is not None:
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
         if proceed_to_step_2:
-            with st.spinner(''):
-                with st.empty():
-                    st.markdown("<div style='display: inline-block;'><button style='margin-right: 10px;'>Caricamento...</button><div class='spinner-border' role='status'></div></div>", unsafe_allow_html=True)
-                    time.sleep(2)  # Simulazione del tempo di caricamento
+            with st.spinner('Caricamento...'):
+                time.sleep(2)  # Simulazione del tempo di caricamento
 
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
             # Creazione della dashboard interattiva
-            tab1, tab2, tab3 = st.tabs(["Tipologia delle Variabili", "Statistiche Descrittive", "Visualizzazioni"])
+            tab1, tab2, tab3, tab4 = st.tabs(["Tipologia delle Variabili", "Statistiche Descrittive", "Visualizzazioni", "Heatmap delle Correlazioni"])
 
             with tab1:
                 st.write("**Tipologia delle variabili:**")
@@ -77,14 +75,21 @@ if uploaded_file is not None:
                 st.write("**Visualizzazione delle Distribuzioni delle Variabili Numeriche:**")
                 numeric_columns = dataset.select_dtypes(include=['number']).columns
                 if len(numeric_columns) > 0:
-                    for column in numeric_columns:
-                        fig, ax = plt.subplots(figsize=(10, 6))
-                        sns.histplot(dataset[column], kde=True, ax=ax, bins=15)
-                        ax.set_title(f"Distribuzione di {column}")
-                        st.pyplot(fig)
+                    variable_tabs = st.tabs([f"Variabile: {col}" for col in numeric_columns])
+                    for i, column in enumerate(numeric_columns):
+                        with variable_tabs[i]:
+                            fig, ax = plt.subplots(figsize=(10, 6))
+                            if dataset[column].dtype in ['int64', 'int32']:
+                                sns.barplot(x=dataset[column].value_counts().index, y=dataset[column].value_counts().values, ax=ax)
+                                ax.set_title(f"Barplot di {column}")
+                            else:
+                                sns.histplot(dataset[column], kde=True, ax=ax, bins=15)
+                                ax.set_title(f"Distribuzione di {column}")
+                            st.pyplot(fig)
                 else:
                     st.write("Nessuna variabile numerica disponibile per la visualizzazione.")
 
+            with tab4:
                 st.write("**Heatmap delle Correlazioni:**")
                 if len(numeric_columns) > 1:
                     fig, ax = plt.subplots(figsize=(10, 8))
