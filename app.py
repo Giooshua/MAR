@@ -18,7 +18,7 @@ uploaded_file = st.file_uploader("Carica il tuo dataset (.csv, .txt, .xlsx)", ty
 def load_dataset(uploaded_file, delimiter=','):
     try:
         if uploaded_file.name.endswith('.csv') or uploaded_file.name.endswith('.txt'):
-            df = pd.read_csv(uploaded_file, delimiter=delimiter)  # Tentativo di auto-detection del delimitatore
+            df = pd.read_csv(uploaded_file, delimiter=delimiter)
         elif uploaded_file.name.endswith('.xlsx'):
             df = pd.read_excel(uploaded_file)
         else:
@@ -29,9 +29,7 @@ def load_dataset(uploaded_file, delimiter=','):
         return None
 
 if uploaded_file is not None:
-    # Opzione per specificare il delimitatore
-    delimiter = st.text_input("Inserisci il delimitatore (es. ',' o ';') se necessario", value=",")
-    dataset = load_dataset(uploaded_file, delimiter)
+    dataset = load_dataset(uploaded_file)
     if dataset is not None:
         st.success(f"Dataset caricato con successo! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
         st.write(dataset.head())
@@ -46,24 +44,26 @@ if uploaded_file is not None:
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
             st.write("**Tipologia delle variabili:**")
-            variable_types = dataset.dtypes
+            variable_types = pd.DataFrame({
+                'Colonna': dataset.columns,
+                'Tipo': dataset.dtypes,
+                'Categoria': dataset.dtypes.apply(lambda x: 'Quantitativa - Continua' if x in ['float64', 'float32'] else ('Quantitativa - Discreta' if x in ['int64', 'int32'] else ('Categorica - Nominale' if dataset[x.name].nunique() > 2 else 'Binaria')))
+            })
             st.write(variable_types)
 
             st.write("**Statistiche descrittive del dataset:**")
             descriptive_stats = dataset.describe()
             st.write(descriptive_stats)
 
-            st.write("**Valori mancanti per ciascuna colonna:**")
-            missing_values = dataset.isnull().sum()
-            st.write(missing_values)
-
-            # Visualizzazioni con Matplotlib
+            # Visualizzazioni con Matplotlib e Seaborn
             st.write("**Visualizzazione delle Distribuzioni delle Variabili Numeriche:**")
             numeric_columns = dataset.select_dtypes(include=['number']).columns
             if len(numeric_columns) > 0:
-                fig, ax = plt.subplots(figsize=(10, 6))
-                dataset[numeric_columns].hist(ax=ax, bins=15)
-                st.pyplot(fig)
+                for column in numeric_columns:
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    sns.histplot(dataset[column], kde=True, ax=ax, bins=15)
+                    ax.set_title(f"Distribuzione di {column}")
+                    st.pyplot(fig)
             else:
                 st.write("Nessuna variabile numerica disponibile per la visualizzazione.")
 
