@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import sweetviz as sv
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🧐")
@@ -44,13 +45,6 @@ if uploaded_file is not None:
             st.info("Passaggio allo Step 2: Panoramica Esplorativa del Dataset...")
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
-            # Panoramica esplorativa usando Sweetviz
-            st.write("**Generazione del Report Esplorativo con Sweetviz:**")
-            report = sv.analyze(dataset)
-            report_path = "sweetviz_report.html"
-            report.show_html(report_path)
-            st.markdown(f"[Clicca qui per visualizzare il report completo]({report_path})", unsafe_allow_html=True)
-
             st.write("**Tipologia delle variabili:**")
             variable_types = dataset.dtypes
             st.write(variable_types)
@@ -62,5 +56,23 @@ if uploaded_file is not None:
             st.write("**Valori mancanti per ciascuna colonna:**")
             missing_values = dataset.isnull().sum()
             st.write(missing_values)
+
+            # Visualizzazioni con Matplotlib
+            st.write("**Visualizzazione delle Distribuzioni delle Variabili Numeriche:**")
+            numeric_columns = dataset.select_dtypes(include=['number']).columns
+            if len(numeric_columns) > 0:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                dataset[numeric_columns].hist(ax=ax, bins=15)
+                st.pyplot(fig)
+            else:
+                st.write("Nessuna variabile numerica disponibile per la visualizzazione.")
+
+            st.write("**Heatmap delle Correlazioni:**")
+            if len(numeric_columns) > 1:
+                fig, ax = plt.subplots(figsize=(10, 8))
+                sns.heatmap(dataset[numeric_columns].corr(), annot=True, cmap='coolwarm', ax=ax)
+                st.pyplot(fig)
+            else:
+                st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
     else:
         st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
