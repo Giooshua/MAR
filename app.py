@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
-import pandas_profiling
-from streamlit_pandas_profiling import st_profile_report
+import sweetviz as sv
 
 # Titolo dell'applicazione
-st.set_page_config(page_title="MAR Algorithm", page_icon="🤓")
+st.set_page_config(page_title="MAR Algorithm", page_icon="🧐")
 
 # Titolo e logo dell'applicazione
 st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
@@ -45,12 +44,23 @@ if uploaded_file is not None:
             st.info("Passaggio allo Step 2: Panoramica Esplorativa del Dataset...")
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
-            # Utilizzo di pandas profiling per creare una panoramica del dataset
-            try:
-                profile = dataset.profile_report(title="Profilo del Dataset", explorative=True)
-                st_profile_report(profile)
-            except ModuleNotFoundError:
-                st.error("Per utilizzare questa funzionalità, assicurati di aver installato 'pandas-profiling' e 'streamlit-pandas-profiling' nel tuo ambiente.")
+            # Panoramica esplorativa usando Sweetviz
+            st.write("**Generazione del Report Esplorativo con Sweetviz:**")
+            report = sv.analyze(dataset)
+            report_path = "sweetviz_report.html"
+            report.show_html(report_path)
+            st.markdown(f"[Clicca qui per visualizzare il report completo]({report_path})", unsafe_allow_html=True)
 
+            st.write("**Tipologia delle variabili:**")
+            variable_types = dataset.dtypes
+            st.write(variable_types)
+
+            st.write("**Statistiche descrittive del dataset:**")
+            descriptive_stats = dataset.describe()
+            st.write(descriptive_stats)
+
+            st.write("**Valori mancanti per ciascuna colonna:**")
+            missing_values = dataset.isnull().sum()
+            st.write(missing_values)
     else:
         st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
