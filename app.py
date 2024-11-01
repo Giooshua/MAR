@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🧐")
@@ -40,7 +41,9 @@ if uploaded_file is not None:
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
         if proceed_to_step_2:
-            st.info("Passaggio allo Step 2: Panoramica Esplorativa del Dataset...")
+            with st.spinner('Caricamento in corso...'):
+                time.sleep(2)  # Simulazione del tempo di caricamento
+
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
             # Creazione della dashboard interattiva
