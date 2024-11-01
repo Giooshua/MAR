@@ -1,3 +1,4 @@
 streamlit
 pandas
-sweetviz
+matplotlib
+seaborn
