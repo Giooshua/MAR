@@ -44,10 +44,20 @@ if uploaded_file is not None:
             st.subheader("Step 2: Panoramica Esplorativa del Dataset")
 
             st.write("**Tipologia delle variabili:**")
+            def categorize_variable(column):
+                if dataset[column].dtype in ['float64', 'float32']:
+                    return 'Quantitativa - Continua'
+                elif dataset[column].dtype in ['int64', 'int32']:
+                    return 'Quantitativa - Discreta'
+                elif dataset[column].nunique() == 2:
+                    return 'Binaria'
+                else:
+                    return 'Categorica - Nominale'
+
             variable_types = pd.DataFrame({
                 'Colonna': dataset.columns,
                 'Tipo': dataset.dtypes,
-                'Categoria': dataset.dtypes.apply(lambda x: 'Quantitativa - Continua' if x in ['float64', 'float32'] else ('Quantitativa - Discreta' if x in ['int64', 'int32'] else ('Categorica - Nominale' if dataset[x.name].nunique() > 2 else 'Binaria')))
+                'Categoria': dataset.columns.map(categorize_variable)
             })
             st.write(variable_types)
 
