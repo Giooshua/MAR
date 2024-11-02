@@ -91,6 +91,7 @@ if uploaded_file is not None:
 
             with tab4:
                 st.write("**Heatmap delle Correlazioni:**")
+                numeric_columns = dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns
                 if len(numeric_columns) > 1:
                     fig, ax = plt.subplots(figsize=(10, 8))
                     sns.heatmap(dataset[numeric_columns].corr() * 100, annot=True, cmap='crest', ax=ax, fmt='.0f')
