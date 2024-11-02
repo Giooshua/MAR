@@ -39,7 +39,7 @@ if uploaded_file is not None:
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
         if proceed_to_step_2:
-            with st.spinner('Caricamento...'):
+            with st.spinner('Caricamento in corso...'):
                 time.sleep(2)  # Simulazione del tempo di caricamento
 
             st.subheader("Panoramica Esplorativa")
@@ -73,21 +73,18 @@ if uploaded_file is not None:
 
             with tab3:
                 st.write("**Visualizzazione delle Distribuzioni delle Variabili:**")
-                all_columns = dataset.columns
-                variable_tabs = st.tabs([f"Variabile: {col}" for col in all_columns])
-                for i, column in enumerate(all_columns):
-                    with variable_tabs[i]:
-                        fig, ax = plt.subplots(figsize=(10, 6))
-                        if dataset[column].dtype in ['int64', 'int32']:
-                            sns.barplot(x=dataset[column].value_counts().index, y=dataset[column].value_counts().values, ax=ax)
-                            ax.set_title(f"Barplot di {column}")
-                        elif dataset[column].dtype in ['float64', 'float32']:
-                            sns.histplot(dataset[column], kde=True, ax=ax, bins=15)
-                            ax.set_title(f"Distribuzione di {column}")
-                        else:
-                            sns.countplot(x=dataset[column], ax=ax)
-                            ax.set_title(f"Conteggio di {column}")
-                        st.pyplot(fig)
+                selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=dataset.columns)
+                fig, ax = plt.subplots(figsize=(10, 6))
+                if dataset[selected_variable].dtype in ['int64', 'int32']:
+                    sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
+                    ax.set_title(f"Barplot di {selected_variable}")
+                elif dataset[selected_variable].dtype in ['float64', 'float32']:
+                    sns.histplot(dataset[selected_variable], kde=True, ax=ax, bins=15)
+                    ax.set_title(f"Distribuzione di {selected_variable}")
+                else:
+                    sns.countplot(x=dataset[selected_variable], ax=ax)
+                    ax.set_title(f"Conteggio di {selected_variable}")
+                st.pyplot(fig)
 
             with tab4:
                 st.write("**Heatmap delle Correlazioni:**")
