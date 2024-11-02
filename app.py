@@ -58,7 +58,6 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
     tab1, tab2, tab3, tab4 = st.tabs(["Tipologia delle Variabili", "Statistiche Descrittive", "Visualizzazioni", "Heatmap delle Correlazioni"])
 
     with tab1:
-        st.write("**Tipologia delle variabili:**")
         def categorize_variable(column):
             if dataset[column].dtype in ['float64', 'float32']:
                 return 'Quantitativa - Continua'
@@ -80,12 +79,10 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
         st.write(variable_types)
 
     with tab2:
-        st.write("**Statistiche descrittive del dataset:**")
         descriptive_stats = dataset.describe()
         st.write(descriptive_stats)
 
     with tab3:
-        st.write("**Visualizzazione delle Distribuzioni delle Variabili:**")
         selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=["Seleziona una variabile"] + list(dataset.columns), index=0, key='selected_variable')
         if selected_variable != "Seleziona una variabile" and selected_variable in dataset.columns:
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -107,7 +104,6 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
             st.info("Seleziona una variabile per visualizzare il grafico.")
 
     with tab4:
-        st.write("**Heatmap delle Correlazioni:**")
         numeric_columns = dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns
         if len(numeric_columns) > 1:
             fig, ax = plt.subplots(figsize=(10, 8))
