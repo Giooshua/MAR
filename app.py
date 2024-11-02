@@ -41,6 +41,7 @@ if uploaded_file is not None:
         if proceed_to_step_2:
             with st.spinner(''):
                 time.sleep(2)  # Simulazione del tempo di caricamento
+                st.empty()  # Rimuove il messaggio di caricamento dopo il completamento
 
             st.subheader("Panoramica Esplorativa")
 
