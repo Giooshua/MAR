@@ -100,9 +100,11 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 value_counts = dataset[selected_variable].value_counts()
                 if len(value_counts) > 15:
                     top_categories = value_counts.nlargest(15).index
-                    dataset[selected_variable] = dataset[selected_variable].apply(lambda x: x if x in top_categories else 'Altro')
-                    value_counts = dataset[selected_variable].value_counts()
-                    st.session_state['raggruppate_altro'][selected_variable] = set(dataset[selected_variable].unique()) - set(top_categories)
+                    altre_categorie = set(value_counts.index) - set(top_categories)
+                    if altre_categorie:  # Se ci sono categorie da raggruppare
+                        dataset[selected_variable] = dataset[selected_variable].apply(lambda x: x if x in top_categories else 'Altro')
+                        value_counts = dataset[selected_variable].value_counts()
+                        st.session_state['raggruppate_altro'][selected_variable] = altre_categorie
                 sns.barplot(x=value_counts.index, y=value_counts.values, ax=ax)
                 ax.set_title(f"Conteggio di {selected_variable}")
             st.pyplot(fig)
