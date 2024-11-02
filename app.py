@@ -16,6 +16,8 @@ if 'proceed_to_step_2' not in st.session_state:
     st.session_state['proceed_to_step_2'] = False
 if 'selected_variable' not in st.session_state:
     st.session_state['selected_variable'] = None
+if 'raggruppate_altro' not in st.session_state:
+    st.session_state['raggruppate_altro'] = {}
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -100,17 +102,17 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                     top_categories = value_counts.nlargest(15).index
                     dataset[selected_variable] = dataset[selected_variable].apply(lambda x: x if x in top_categories else 'Altro')
                     value_counts = dataset[selected_variable].value_counts()
-                    st.session_state['raggruppate_altro'] = set(value_counts.index) - set(top_categories)
+                    st.session_state['raggruppate_altro'][selected_variable] = set(value_counts.index) - set(top_categories)
                 sns.barplot(x=value_counts.index, y=value_counts.values, ax=ax)
                 ax.set_title(f"Conteggio di {selected_variable}")
             st.pyplot(fig)
+
+            if selected_variable in st.session_state['raggruppate_altro'] and st.session_state['raggruppate_altro'][selected_variable]:
+                with st.expander(f"Visualizza le categorie raggruppate in 'Altro' per la variabile '{selected_variable}'"):
+                    st.write(f"Le categorie raggruppate in 'Altro' per la variabile {selected_variable} sono:")
+                    st.write(st.session_state['raggruppate_altro'][selected_variable])
         elif selected_variable == "Seleziona una variabile":
             st.info("Seleziona una variabile per visualizzare il grafico.")
-
-        if 'raggruppate_altro' in st.session_state and st.session_state['raggruppate_altro']:
-            with st.expander(f"Visualizza le categorie raggruppate in 'Altro' per la variabile '{selected_variable}'"):
-                st.write(f"Le categorie raggruppate in 'Altro' per la variabile {selected_variable} sono:")
-                st.write(st.session_state['raggruppate_altro'])
 
     with tab4:
         numeric_columns = dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns
