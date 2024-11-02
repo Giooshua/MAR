@@ -81,17 +81,20 @@ if uploaded_file is not None:
             with tab3:
                 st.write("**Visualizzazione delle Distribuzioni delle Variabili:**")
                 selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=dataset.columns, index=0, key='selected_variable')
-                fig, ax = plt.subplots(figsize=(10, 6))
-                if dataset[selected_variable].dtype in ['int64', 'int32']:
-                    sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
-                    ax.set_title(f"Barplot di {selected_variable}")
-                elif dataset[selected_variable].dtype in ['float64', 'float32']:
-                    sns.histplot(dataset[selected_variable], kde=True, ax=ax, bins=15)
-                    ax.set_title(f"Distribuzione di {selected_variable}")
+                if selected_variable in dataset.columns:
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    if dataset[selected_variable].dtype in ['int64', 'int32']:
+                        sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
+                        ax.set_title(f"Barplot di {selected_variable}")
+                    elif dataset[selected_variable].dtype in ['float64', 'float32']:
+                        sns.histplot(dataset[selected_variable], kde=True, ax=ax, bins=15)
+                        ax.set_title(f"Distribuzione di {selected_variable}")
+                    else:
+                        sns.countplot(x=dataset[selected_variable], ax=ax)
+                        ax.set_title(f"Conteggio di {selected_variable}")
+                    st.pyplot(fig)
                 else:
-                    sns.countplot(x=dataset[selected_variable], ax=ax)
-                    ax.set_title(f"Conteggio di {selected_variable}")
-                st.pyplot(fig)
+                    st.error("La variabile selezionata non è più presente nel dataset. Ricarica il dataset e seleziona di nuovo una variabile.")
 
             with tab4:
                 st.write("**Heatmap delle Correlazioni:**")
