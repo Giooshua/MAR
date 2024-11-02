@@ -105,8 +105,6 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
             st.pyplot(fig)
         elif selected_variable == "Seleziona una variabile":
             st.info("Seleziona una variabile per visualizzare il grafico.")
-        else:
-            st.error("La variabile selezionata non è più presente nel dataset. Ricarica il dataset e seleziona di nuovo una variabile.")
 
     with tab4:
         st.write("**Heatmap delle Correlazioni:**")
