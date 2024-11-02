@@ -93,7 +93,7 @@ if uploaded_file is not None:
                 st.write("**Heatmap delle Correlazioni:**")
                 if len(numeric_columns) > 1:
                     fig, ax = plt.subplots(figsize=(10, 8))
-                    sns.heatmap(dataset[numeric_columns].corr(), annot=True, cmap='crest', ax=ax, fmt='g')
+                    sns.heatmap(dataset[numeric_columns].corr() * 100, annot=True, cmap='crest', ax=ax, fmt='.0f')
                     st.pyplot(fig)
                 else:
                     st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
