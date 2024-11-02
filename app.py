@@ -11,6 +11,12 @@ st.set_page_config(page_title="MAR Algorithm", page_icon="🧐")
 st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
 st.title("Interfaccia")
 
+# Inizializza lo stato della sessione
+if 'proceed_to_step_2' not in st.session_state:
+    st.session_state['proceed_to_step_2'] = False
+if 'selected_variable' not in st.session_state:
+    st.session_state['selected_variable'] = None
+
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
 
@@ -34,11 +40,12 @@ if uploaded_file is not None:
         st.write(dataset.head())
 
         # Chiedi se l'utente vuole passare allo Step 2
-        proceed_to_step_2 = st.button("Panoramica Esplorativa del Dataset")
+        if st.button("Panoramica Esplorativa del Dataset"):
+            st.session_state['proceed_to_step_2'] = True
 
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
-        if proceed_to_step_2:
+        if st.session_state['proceed_to_step_2']:
             with st.spinner('Caricamento in corso...'):
                 time.sleep(2)  # Simulazione del tempo di caricamento
 
@@ -73,7 +80,7 @@ if uploaded_file is not None:
 
             with tab3:
                 st.write("**Visualizzazione delle Distribuzioni delle Variabili:**")
-                selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=dataset.columns)
+                selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=dataset.columns, index=0, key='selected_variable')
                 fig, ax = plt.subplots(figsize=(10, 6))
                 if dataset[selected_variable].dtype in ['int64', 'int32']:
                     sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
