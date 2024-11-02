@@ -39,7 +39,7 @@ if uploaded_file is not None:
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
         if proceed_to_step_2:
-            with st.spinner('Caricamento...'):
+            with st.spinner(''):
                 time.sleep(2)  # Simulazione del tempo di caricamento
 
             st.subheader("Panoramica Esplorativa")
@@ -93,7 +93,7 @@ if uploaded_file is not None:
                 st.write("**Heatmap delle Correlazioni:**")
                 if len(numeric_columns) > 1:
                     fig, ax = plt.subplots(figsize=(10, 8))
-                    sns.heatmap(dataset[numeric_columns].corr(), annot=True, cmap='crest', ax=ax, fmt='s')
+                    sns.heatmap(dataset[numeric_columns].corr(), annot=True, cmap='crest', ax=ax, fmt='g')
                     st.pyplot(fig)
                 else:
                     st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
