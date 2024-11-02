@@ -60,7 +60,10 @@ if uploaded_file is not None:
                     if dataset[column].dtype in ['float64', 'float32']:
                         return 'Quantitativa - Continua'
                     elif dataset[column].dtype in ['int64', 'int32']:
-                        return 'Quantitativa - Discreta'
+                        if dataset[column].nunique() > 20:  # Se il numero di valori unici è alto, consideriamola continua
+                            return 'Quantitativa - Continua'
+                        else:
+                            return 'Quantitativa - Discreta'
                     elif dataset[column].nunique() == 2:
                         return 'Binaria'
                     else:
@@ -81,11 +84,15 @@ if uploaded_file is not None:
             with tab3:
                 st.write("**Visualizzazione delle Distribuzioni delle Variabili:**")
                 selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=dataset.columns, index=0, key='selected_variable')
-                if selected_variable in dataset.columns:
+                if selected_variable and selected_variable in dataset.columns:
                     fig, ax = plt.subplots(figsize=(10, 6))
                     if dataset[selected_variable].dtype in ['int64', 'int32']:
-                        sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
-                        ax.set_title(f"Barplot di {selected_variable}")
+                        if variable_types.loc[variable_types['Colonna'] == selected_variable, 'Categoria'].values[0] == 'Quantitativa - Discreta':
+                            sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
+                            ax.set_title(f"Barplot di {selected_variable}")
+                        else:
+                            sns.histplot(dataset[selected_variable], kde=True, ax=ax, bins=15)
+                            ax.set_title(f"Distribuzione di {selected_variable}")
                     elif dataset[selected_variable].dtype in ['float64', 'float32']:
                         sns.histplot(dataset[selected_variable], kde=True, ax=ax, bins=15)
                         ax.set_title(f"Distribuzione di {selected_variable}")
