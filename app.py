@@ -108,7 +108,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 sns.barplot(x=value_counts.index, y=value_counts.values, ax=ax)
                 ax.set_title(f"Conteggio di {selected_variable}")
                 if any(len(str(label)) > 4 for label in value_counts.index):
-                    plt.xticks(rotation=45)
+                    plt.xticks(rotation=90, fontsize=10)
             st.pyplot(fig)
 
             if selected_variable in st.session_state['raggruppate_altro'] and st.session_state['raggruppate_altro'][selected_variable]:
