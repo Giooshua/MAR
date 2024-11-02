@@ -39,9 +39,8 @@ if uploaded_file is not None:
         # STEP 2: Panoramica Esplorativa del Dataset
         # ----------------------------------------
         if proceed_to_step_2:
-            with st.spinner(''):
+            with st.spinner('Caricamento...'):
                 time.sleep(2)  # Simulazione del tempo di caricamento
-            st.write("Caricamento in corso...")
 
             st.subheader("Panoramica Esplorativa")
 
