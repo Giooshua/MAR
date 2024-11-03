@@ -8,9 +8,9 @@ The *MAR (Method-Approach-Recommendation) interface* is a [Streamlit](//) Python
 
 ## **Features**
 
-- **Dataset Upload**: Supports uploading `.csv`, `.xls`, `.xlsx`, or `.txt` files.
+- **Dataset Upload**: Supports uploading `.csv`, or `.txt` files.
+- **Variable Recognition**: Recognizes the types of variables present (e.g. continuous, categorical, boolean).
 - **Data Quality Check**: Checks the dataset quality, including missing data analysis.
-- **Variable Recognition**: Recognizes the types of variables present (continuous, categorical, boolean).
 - **Outlier Handling**: Identifies outliers and provides recommendations for their handling.
 - **ML Algorithm Recommendation**: Provides recommendations on suitable classification methods.
 
