@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import time
+import missingno as msno
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🧐")
@@ -18,6 +19,8 @@ if 'selected_variable' not in st.session_state:
     st.session_state['selected_variable'] = None
 if 'raggruppate_altro' not in st.session_state:
     st.session_state['raggruppate_altro'] = {}
+if 'proceed_to_step_3' not in st.session_state:
+    st.session_state['proceed_to_step_3'] = False
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -127,3 +130,52 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
             st.pyplot(fig)
         else:
             st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
+
+# STEP 3: Analisi dell'Entità dei Dati Mancanti
+# ----------------------------------------
+if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
+    if st.button("Analisi dell'Entità dei Dati Mancanti"):
+        st.session_state['proceed_to_step_3'] = True
+
+if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
+    with st.spinner('Analisi dei dati mancanti in corso...'):
+        time.sleep(2)  # Simulazione del tempo di caricamento
+
+    # Creazione della dashboard interattiva per l'analisi dei dati mancanti
+    tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
+
+    with tab1:
+        missing_summary = pd.DataFrame({
+            'Variabile': dataset.columns,
+            'Valori Mancanti': dataset.isnull().sum(),
+            'Percentuale Mancante (%)': dataset.isnull().mean() * 100,
+            'Tipo Variabile': dataset.columns.map(lambda col: categorize_variable(col))
+        }).reset_index(drop=True)
+        st.write(missing_summary)
+
+    with tab2:
+        missing_values = dataset.isnull().sum()
+        missing_values = missing_values[missing_values > 0]
+
+        if not missing_values.empty:
+            plt.figure(figsize=(10, 6))
+            sns.barplot(x=missing_values.index, y=missing_values.values, palette="viridis")
+            plt.xticks(rotation=45)
+            plt.xlabel('Variabile')
+            plt.ylabel('Numero di Valori Mancanti')
+            plt.title('Valori Mancanti per Variabile')
+            st.pyplot(plt)
+
+            msno.matrix(dataset)
+            plt.title('Matrice dei Valori Mancanti nel Dataset')
+            st.pyplot(plt)
+        else:
+            st.write("Non ci sono valori mancanti nel dataset.")
+
+    with tab3:
+        if dataset.isnull().sum().sum() > 0:
+            msno.heatmap(dataset)
+            plt.title('Correlazione dei Valori Mancanti tra le Variabili')
+            st.pyplot(plt)
+        else:
+            st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
