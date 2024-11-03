@@ -21,6 +21,8 @@ if 'raggruppate_altro' not in st.session_state:
     st.session_state['raggruppate_altro'] = {}
 if 'proceed_to_step_3' not in st.session_state:
     st.session_state['proceed_to_step_3'] = False
+if 'step_2_rendered' not in st.session_state:
+    st.session_state['step_2_rendered'] = False
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -53,7 +55,7 @@ with st.expander("Step 1: Caricamento del Dataset", expanded=True):
 
 # STEP 2: Panoramica Esplorativa del Dataset
 # ----------------------------------------
-if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
+if st.session_state['proceed_to_step_2'] and uploaded_file is not None and not st.session_state['step_2_rendered']:
     if 'dataset' not in st.session_state:
         st.session_state['dataset'] = dataset
     with st.expander("Step 2: Panoramica Esplorativa del Dataset", expanded=True):
@@ -133,6 +135,9 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 st.pyplot(fig)
             else:
                 st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
+
+        # Imposta il flag per indicare che lo Step 2 è stato completato
+        st.session_state['step_2_rendered'] = True
 
         # Pulsante per passare allo Step 3
         if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
