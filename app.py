@@ -84,10 +84,6 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
             })
             st.write(variable_types.drop(columns=['Tipo']))
 
-            # Pulsante per passare allo Step 3
-            if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
-                st.session_state['proceed_to_step_3'] = True
-
         with tab2:
             descriptive_stats = st.session_state['dataset'].describe()
             descriptive_stats.index = descriptive_stats.index.str.capitalize()
@@ -137,6 +133,10 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 st.pyplot(fig)
             else:
                 st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
+
+        # Pulsante per passare allo Step 3
+        if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
+            st.session_state['proceed_to_step_3'] = True
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
