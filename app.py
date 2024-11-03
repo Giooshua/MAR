@@ -76,7 +76,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
             'Tipo': dataset.dtypes,
             'Categoria': dataset.columns.map(categorize_variable)
         })
-        st.write(variable_types)
+        st.write(variable_types.drop(columns=['Tipo']))
 
     with tab2:
         descriptive_stats = dataset.describe()
@@ -88,7 +88,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
         if selected_variable != "Seleziona una variabile" and selected_variable in dataset.columns:
             fig, ax = plt.subplots(figsize=(10, 6))
             if dataset[selected_variable].dtype in ['int64', 'int32']:
-                if variable_types.loc[variable_types['Colonna'] == selected_variable, 'Categoria'].values[0] == 'Quantitativa - Discreta':
+                if variable_types.loc[variable_types['Colonna'] == selected_variable, 'Tipo'].values[0] == 'Quantitativa - Discreta':
                     sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
                     ax.set_title(f"Barplot di {selected_variable}")
                 else:
