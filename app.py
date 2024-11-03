@@ -27,6 +27,8 @@ if 'step_3_rendered' not in st.session_state:
     st.session_state['step_3_rendered'] = False
 if 'step_2_expanded' not in st.session_state:
     st.session_state['step_2_expanded'] = True
+if 'step_3_expanded' not in st.session_state:
+    st.session_state['step_3_expanded'] = True
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -148,11 +150,12 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None and not s
         if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
             st.session_state['proceed_to_step_3'] = True
             st.session_state['step_2_expanded'] = True
+            st.session_state['step_3_expanded'] = True
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
 if st.session_state['proceed_to_step_3'] and uploaded_file is not None and not st.session_state['step_3_rendered']:
-    with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=True):
+    with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=st.session_state['step_3_expanded']):
         with st.spinner('Analisi dei dati mancanti in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
 
