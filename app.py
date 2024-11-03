@@ -80,6 +80,8 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
 
     with tab2:
         descriptive_stats = dataset.describe()
+        descriptive_stats.columns = descriptive_stats.columns.str.capitalize()
+        descriptive_stats.index = descriptive_stats.index.str.capitalize()
         st.write(descriptive_stats)
 
     with tab3:
