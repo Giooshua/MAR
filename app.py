@@ -132,13 +132,12 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
             else:
                 st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
 
-# STEP 3: Analisi dell'Entità dei Dati Mancanti
-# ----------------------------------------
-if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
-    with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=False):
-        if st.button("Analisi dell'Entità dei Dati Mancanti"):
+        # Pulsante per passare allo Step 3
+        if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
             st.session_state['proceed_to_step_3'] = True
 
+# STEP 3: Analisi dell'Entità dei Dati Mancanti
+# ----------------------------------------
 if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
     with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=True):
         with st.spinner('Analisi dei dati mancanti in corso...'):
