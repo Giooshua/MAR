@@ -107,7 +107,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                         st.session_state['raggruppate_altro'][selected_variable] = altre_categorie
                 sns.barplot(x=value_counts.index, y=value_counts.values, ax=ax)
                 ax.set_title(f"Conteggio di {selected_variable}")
-                if any(len(str(label)) > 4 for label in value_counts.index):
+                if any(len(str(label)) > 4 and label != 'Altro' for label in value_counts.index) or len(value_counts) > 10:
                     plt.xticks(rotation=90, fontsize=10)
             st.pyplot(fig)
 
