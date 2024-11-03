@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="405" height="131" src="https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png">
+  <img width="305" height="99" src="https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png">
 </p>
 
 # **MAR Interface**
