@@ -23,12 +23,6 @@ if 'proceed_to_step_3' not in st.session_state:
     st.session_state['proceed_to_step_3'] = False
 if 'step_2_rendered' not in st.session_state:
     st.session_state['step_2_rendered'] = False
-if 'step_3_rendered' not in st.session_state:
-    st.session_state['step_3_rendered'] = False
-if 'step_2_expanded' not in st.session_state:
-    st.session_state['step_2_expanded'] = True
-if 'step_3_expanded' not in st.session_state:
-    st.session_state['step_3_expanded'] = True
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -64,7 +58,7 @@ with st.expander("Step 1: Caricamento del Dataset", expanded=True):
 if st.session_state['proceed_to_step_2'] and uploaded_file is not None and not st.session_state['step_2_rendered']:
     if 'dataset' not in st.session_state:
         st.session_state['dataset'] = dataset
-    with st.expander("Step 2: Panoramica Esplorativa del Dataset", expanded=st.session_state['step_2_expanded']):
+    with st.expander("Step 2: Panoramica Esplorativa del Dataset", expanded=True):
         with st.spinner('Caricamento in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
 
@@ -144,18 +138,15 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None and not s
 
         # Imposta il flag per indicare che lo Step 2 è stato completato
         st.session_state['step_2_rendered'] = True
-        st.session_state['step_2_expanded'] = True
 
         # Pulsante per passare allo Step 3
         if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
             st.session_state['proceed_to_step_3'] = True
-            st.session_state['step_2_expanded'] = True
-            st.session_state['step_3_expanded'] = True
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
-if st.session_state['proceed_to_step_3'] and uploaded_file is not None and not st.session_state['step_3_rendered']:
-    with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=st.session_state['step_3_expanded']):
+if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
+    with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=True):
         with st.spinner('Analisi dei dati mancanti in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
 
@@ -197,6 +188,3 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None and not s
                 st.pyplot(plt)
             else:
                 st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
-
-        # Imposta il flag per indicare che lo Step 3 è stato completato
-        st.session_state['step_3_rendered'] = True
