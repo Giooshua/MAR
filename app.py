@@ -82,6 +82,10 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
             })
             st.write(variable_types.drop(columns=['Tipo']))
 
+            # Pulsante per passare allo Step 3
+            if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
+                st.session_state['proceed_to_step_3'] = True
+
         with tab2:
             descriptive_stats = dataset.describe()
             descriptive_stats.index = descriptive_stats.index.str.capitalize()
@@ -134,11 +138,6 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
-if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
-    with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=False):
-        if st.button("Analisi dell'Entità dei Dati Mancanti"):
-            st.session_state['proceed_to_step_3'] = True
-
 if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
     with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=True):
         with st.spinner('Analisi dei dati mancanti in corso...'):
