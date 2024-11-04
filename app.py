@@ -21,6 +21,10 @@ if 'raggruppate_altro' not in st.session_state:
     st.session_state['raggruppate_altro'] = {}
 if 'proceed_to_step_3' not in st.session_state:
     st.session_state['proceed_to_step_3'] = False
+if 'exclude_variables' not in st.session_state:
+    st.session_state['exclude_variables'] = []
+if 'exclude_observations' not in st.session_state:
+    st.session_state['exclude_observations'] = []
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -143,20 +147,33 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         with st.spinner('Analisi dei dati mancanti in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
 
+        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
+        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
+        filtered_dataset = dataset.drop(columns=st.session_state['exclude_variables'])
+
+        # Selezione delle osservazioni da escludere
+        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni (es. 'colonna == valore'):")
+        if st.session_state['exclude_observations']:
+            try:
+                filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
+                st.write("Osservazioni escluse in base al criterio specificato.")
+            except Exception as e:
+                st.error(f"Errore nel criterio di esclusione: {str(e)}")
+
         # Creazione della dashboard interattiva per l'analisi dei dati mancanti
         tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
 
         with tab1:
             missing_summary = pd.DataFrame({
-                'Variabile': dataset.columns,
-                'Valori Mancanti': dataset.isnull().sum(),
-                'Percentuale Mancante (%)': dataset.isnull().mean() * 100,
-                'Tipo Variabile': dataset.columns.map(lambda col: categorize_variable(col))
+                'Variabile': filtered_dataset.columns,
+                'Valori Mancanti': filtered_dataset.isnull().sum(),
+                'Percentuale Mancante (%)': filtered_dataset.isnull().mean() * 100,
+                'Tipo Variabile': filtered_dataset.columns.map(lambda col: categorize_variable(col))
             }).reset_index(drop=True)
             st.write(missing_summary)
 
         with tab2:
-            missing_values = dataset.isnull().sum()
+            missing_values = filtered_dataset.isnull().sum()
             missing_values = missing_values[missing_values > 0]
 
             if not missing_values.empty:
@@ -168,15 +185,15 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 plt.title('Valori Mancanti per Variabile')
                 st.pyplot(plt)
 
-                msno.matrix(dataset)
+                msno.matrix(filtered_dataset)
                 plt.title('Matrice dei Valori Mancanti nel Dataset')
                 st.pyplot(plt)
             else:
                 st.write("Non ci sono valori mancanti nel dataset.")
 
         with tab3:
-            if dataset.isnull().sum().sum() > 0:
-                msno.heatmap(dataset)
+            if filtered_dataset.isnull().sum().sum() > 0:
+                msno.heatmap(filtered_dataset)
                 plt.title('Correlazione dei Valori Mancanti tra le Variabili')
                 st.pyplot(plt)
             else:
