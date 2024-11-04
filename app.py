@@ -152,7 +152,9 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         filtered_dataset = dataset.drop(columns=st.session_state['exclude_variables'])
 
         # Selezione delle osservazioni da escludere
-        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni (es. 'colonna == valore'):")
+        st.markdown("### Selezione delle Osservazioni da Escludere")
+        st.markdown("Inserisci un criterio per escludere le osservazioni dal dataset. Puoi usare condizioni come `colonna == valore`, `colonna > valore`, etc. Ad esempio: `Age > 30` per escludere tutte le osservazioni con `Age` maggiore di 30.")
+        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni:")
         if st.session_state['exclude_observations']:
             try:
                 filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
