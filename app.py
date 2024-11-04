@@ -21,6 +21,22 @@ if 'raggruppate_altro' not in st.session_state:
     st.session_state['raggruppate_altro'] = {}
 if 'proceed_to_step_3' not in st.session_state:
     st.session_state['proceed_to_step_3'] = False
+if 'dataset' not in st.session_state:
+    st.session_state['dataset'] = None
+
+# Funzione per categorizzare le variabili
+def categorize_variable(dataset, column):
+    if dataset[column].dtype in ['float64', 'float32']:
+        return 'Quantitativa - Continua'
+    elif dataset[column].dtype in ['int64', 'int32']:
+        if dataset[column].nunique() > 20:
+            return 'Quantitativa - Continua'
+        else:
+            return 'Quantitativa - Discreta'
+    elif dataset[column].nunique() == 2:
+        return 'Binaria'
+    else:
+        return 'Categorica - Nominale'
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -41,22 +57,9 @@ with st.expander("Step 1: Caricamento del Dataset", expanded=True):
     if uploaded_file is not None:
         dataset = load_dataset(uploaded_file)
         if dataset is not None:
+            st.session_state['dataset'] = dataset  # Salva il dataset in session_state
             st.success(f"Dataset caricato con successo! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
             st.write(dataset.head())
-
-            # Definizione della funzione categorize_variable
-            def categorize_variable(column):
-                if dataset[column].dtype in ['float64', 'float32']:
-                    return 'Quantitativa - Continua'
-                elif dataset[column].dtype in ['int64', 'int32']:
-                    if dataset[column].nunique() > 20:  # Se il numero di valori unici è alto, consideriamola continua
-                        return 'Quantitativa - Continua'
-                    else:
-                        return 'Quantitativa - Discreta'
-                elif dataset[column].nunique() == 2:
-                    return 'Binaria'
-                else:
-                    return 'Categorica - Nominale'
 
             # Chiedi se l'utente vuole passare allo Step 2
             if st.button("Panoramica Esplorativa del Dataset"):
@@ -68,6 +71,7 @@ with st.expander("Step 1: Caricamento del Dataset", expanded=True):
 # STEP 2: Panoramica Esplorativa del Dataset
 # ----------------------------------------
 if st.session_state['proceed_to_step_2'] and not st.session_state['proceed_to_step_3'] and uploaded_file is not None:
+    dataset = st.session_state['dataset']  # Recupera il dataset da session_state
     with st.expander("Step 2: Panoramica Esplorativa del Dataset", expanded=True):
         with st.spinner('Caricamento in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
@@ -79,7 +83,7 @@ if st.session_state['proceed_to_step_2'] and not st.session_state['proceed_to_st
             variable_types = pd.DataFrame({
                 'Colonna': dataset.columns,
                 'Tipo': dataset.dtypes,
-                'Categoria': dataset.columns.map(categorize_variable)
+                'Categoria': [categorize_variable(dataset, col) for col in dataset.columns]
             })
             st.write(variable_types.drop(columns=['Tipo']))
 
@@ -92,8 +96,9 @@ if st.session_state['proceed_to_step_2'] and not st.session_state['proceed_to_st
             selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=["Seleziona una variabile"] + list(dataset.columns), index=0, key='selected_variable')
             if selected_variable != "Seleziona una variabile" and selected_variable in dataset.columns:
                 fig, ax = plt.subplots(figsize=(10, 6))
+                category = variable_types.loc[variable_types['Colonna'] == selected_variable, 'Categoria'].values[0]
                 if dataset[selected_variable].dtype in ['int64', 'int32']:
-                    if variable_types.loc[variable_types['Colonna'] == selected_variable, 'Categoria'].values[0] == 'Quantitativa - Discreta':
+                    if category == 'Quantitativa - Discreta':
                         sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
                         ax.set_title(f"Barplot di {selected_variable}")
                     else:
@@ -107,7 +112,7 @@ if st.session_state['proceed_to_step_2'] and not st.session_state['proceed_to_st
                     if len(value_counts) > 15:
                         top_categories = value_counts.nlargest(15).index
                         altre_categorie = set(value_counts.index) - set(top_categories)
-                        if altre_categorie:  # Se ci sono categorie da raggruppare
+                        if altre_categorie:
                             dataset[selected_variable] = dataset[selected_variable].apply(lambda x: x if x in top_categories else 'Altro')
                             value_counts = dataset[selected_variable].value_counts()
                             st.session_state['raggruppate_altro'][selected_variable] = altre_categorie
@@ -136,50 +141,9 @@ if st.session_state['proceed_to_step_2'] and not st.session_state['proceed_to_st
         # Pulsante per passare allo Step 3
         if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
             st.session_state['proceed_to_step_3'] = True
-            st.session_state['proceed_to_step_2'] = False  # Aggiunta questa linea
+            st.session_state['proceed_to_step_2'] = False  # Resetta lo stato dello Step 2
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
 if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
-    with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=True):
-        with st.spinner('Analisi dei dati mancanti in corso...'):
-            time.sleep(2)  # Simulazione del tempo di caricamento
-
-        # Creazione della dashboard interattiva per l'analisi dei dati mancanti
-        tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
-
-        with tab1:
-            missing_summary = pd.DataFrame({
-                'Variabile': dataset.columns,
-                'Valori Mancanti': dataset.isnull().sum(),
-                'Percentuale Mancante (%)': dataset.isnull().mean() * 100,
-                'Tipo Variabile': dataset.columns.map(categorize_variable)
-            }).reset_index(drop=True)
-            st.write(missing_summary)
-
-        with tab2:
-            missing_values = dataset.isnull().sum()
-            missing_values = missing_values[missing_values > 0]
-
-            if not missing_values.empty:
-                plt.figure(figsize=(10, 6))
-                sns.barplot(x=missing_values.index, y=missing_values.values, palette="viridis")
-                plt.xticks(rotation=45)
-                plt.xlabel('Variabile')
-                plt.ylabel('Numero di Valori Mancanti')
-                plt.title('Valori Mancanti per Variabile')
-                st.pyplot(plt)
-
-                msno.matrix(dataset)
-                plt.title('Matrice dei Valori Mancanti nel Dataset')
-                st.pyplot(plt)
-            else:
-                st.write("Non ci sono valori mancanti nel dataset.")
-
-        with tab3:
-            if dataset.isnull().sum().sum() > 0:
-                msno.heatmap(dataset)
-                plt.title('Correlazione dei Valori Mancanti tra le Variabili')
-                st.pyplot(plt)
-            else:
-                st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
+    dataset
