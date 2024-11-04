@@ -13,80 +13,47 @@ st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
 st.title("Interfaccia")
 
 # Inizializza lo stato della sessione
-if 'current_step' not in st.session_state:
-    st.session_state['current_step'] = 1
-if 'dataset' not in st.session_state:
-    st.session_state['dataset'] = None
-if 'uploaded_file' not in st.session_state:
-    st.session_state['uploaded_file'] = None
+if 'proceed_to_step_2' not in st.session_state:
+    st.session_state['proceed_to_step_2'] = False
 if 'selected_variable' not in st.session_state:
     st.session_state['selected_variable'] = None
 if 'raggruppate_altro' not in st.session_state:
     st.session_state['raggruppate_altro'] = {}
-
-# Funzione per categorizzare le variabili
-def categorize_variable(dataset, column):
-    if dataset[column].dtype in ['float64', 'float32']:
-        return 'Quantitativa - Continua'
-    elif dataset[column].dtype in ['int64', 'int32']:
-        if dataset[column].nunique() > 20:
-            return 'Quantitativa - Continua'
-        else:
-            return 'Quantitativa - Discreta'
-    elif dataset[column].nunique() == 2:
-        return 'Binaria'
-    else:
-        return 'Categorica - Nominale'
+if 'proceed_to_step_3' not in st.session_state:
+    st.session_state['proceed_to_step_3'] = False
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
-if st.session_state['current_step'] == 1:
+with st.expander("Step 1: Caricamento del Dataset", expanded=True):
+    uploaded_file = st.file_uploader("Carica il tuo dataset (.csv, .txt)", type=["csv", "txt"])
 
-    with st.expander("Step 1: Caricamento del Dataset", expanded=True):
-        uploaded_file = st.file_uploader("Carica il tuo dataset (.csv, .txt)", type=["csv", "txt"])
-
-        if uploaded_file is not None:
-            st.session_state['uploaded_file'] = uploaded_file  # Salva il file in session_state
-
-        def load_dataset(uploaded_file, delimiter=','):
-            try:
-                if uploaded_file.name.endswith('.csv') or uploaded_file.name.endswith('.txt'):
-                    df = pd.read_csv(uploaded_file, delimiter=delimiter)
-                else:
-                    return None
-                return df
-            except Exception as e:
-                st.error(f"Errore nel caricamento del file: {str(e)}")
-                return None
-
-        if st.session_state['uploaded_file'] is not None:
-            if st.session_state['dataset'] is None:
-                dataset = load_dataset(st.session_state['uploaded_file'])
-                if dataset is not None:
-                    st.session_state['dataset'] = dataset  # Salva il dataset in session_state
-                    st.success(f"Dataset caricato con successo! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
-                    st.write(dataset.head())
-
-                    # Chiedi se l'utente vuole passare allo Step 2
-                    if st.button("Panoramica Esplorativa del Dataset"):
-                        st.session_state['current_step'] = 2
-                else:
-                    st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
+    def load_dataset(uploaded_file, delimiter=','):
+        try:
+            if uploaded_file.name.endswith('.csv') or uploaded_file.name.endswith('.txt'):
+                df = pd.read_csv(uploaded_file, delimiter=delimiter)
             else:
-                dataset = st.session_state['dataset']
-                st.success(f"Dataset già caricato! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
-                st.write(dataset.head())
+                return None
+            return df
+        except Exception as e:
+            st.error(f"Errore nel caricamento del file: {str(e)}")
+            return None
 
-                # Chiedi se l'utente vuole passare allo Step 2
-                if st.button("Panoramica Esplorativa del Dataset"):
-                    st.session_state['current_step'] = 2
+    if uploaded_file is not None:
+        dataset = load_dataset(uploaded_file)
+        if dataset is not None:
+            st.success(f"Dataset caricato con successo! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
+            st.write(dataset.head())
+
+            # Chiedi se l'utente vuole passare allo Step 2
+            if st.button("Panoramica Esplorativa del Dataset"):
+                st.session_state['proceed_to_step_2'] = True
+
         else:
-            st.info("Per favore, carica un dataset per procedere.")
+            st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
 
 # STEP 2: Panoramica Esplorativa del Dataset
 # ----------------------------------------
-elif st.session_state['current_step'] == 2 and st.session_state['dataset'] is not None:
-    dataset = st.session_state['dataset']  # Recupera il dataset da session_state
+if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
     with st.expander("Step 2: Panoramica Esplorativa del Dataset", expanded=True):
         with st.spinner('Caricamento in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
@@ -95,10 +62,23 @@ elif st.session_state['current_step'] == 2 and st.session_state['dataset'] is no
         tab1, tab2, tab3, tab4 = st.tabs(["Tipologia delle Variabili", "Statistiche Descrittive", "Visualizzazioni", "Heatmap delle Correlazioni"])
 
         with tab1:
+            def categorize_variable(column):
+                if dataset[column].dtype in ['float64', 'float32']:
+                    return 'Quantitativa - Continua'
+                elif dataset[column].dtype in ['int64', 'int32']:
+                    if dataset[column].nunique() > 20:  # Se il numero di valori unici è alto, consideriamola continua
+                        return 'Quantitativa - Continua'
+                    else:
+                        return 'Quantitativa - Discreta'
+                elif dataset[column].nunique() == 2:
+                    return 'Binaria'
+                else:
+                    return 'Categorica - Nominale'
+
             variable_types = pd.DataFrame({
                 'Colonna': dataset.columns,
                 'Tipo': dataset.dtypes,
-                'Categoria': [categorize_variable(dataset, col) for col in dataset.columns]
+                'Categoria': dataset.columns.map(categorize_variable)
             })
             st.write(variable_types.drop(columns=['Tipo']))
 
@@ -111,9 +91,8 @@ elif st.session_state['current_step'] == 2 and st.session_state['dataset'] is no
             selected_variable = st.selectbox("Seleziona una variabile da visualizzare:", options=["Seleziona una variabile"] + list(dataset.columns), index=0, key='selected_variable')
             if selected_variable != "Seleziona una variabile" and selected_variable in dataset.columns:
                 fig, ax = plt.subplots(figsize=(10, 6))
-                category = variable_types.loc[variable_types['Colonna'] == selected_variable, 'Categoria'].values[0]
                 if dataset[selected_variable].dtype in ['int64', 'int32']:
-                    if category == 'Quantitativa - Discreta':
+                    if variable_types.loc[variable_types['Colonna'] == selected_variable, 'Categoria'].values[0] == 'Quantitativa - Discreta':
                         sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
                         ax.set_title(f"Barplot di {selected_variable}")
                     else:
@@ -127,7 +106,7 @@ elif st.session_state['current_step'] == 2 and st.session_state['dataset'] is no
                     if len(value_counts) > 15:
                         top_categories = value_counts.nlargest(15).index
                         altre_categorie = set(value_counts.index) - set(top_categories)
-                        if altre_categorie:
+                        if altre_categorie:  # Se ci sono categorie da raggruppare
                             dataset[selected_variable] = dataset[selected_variable].apply(lambda x: x if x in top_categories else 'Altro')
                             value_counts = dataset[selected_variable].value_counts()
                             st.session_state['raggruppate_altro'][selected_variable] = altre_categorie
@@ -155,12 +134,11 @@ elif st.session_state['current_step'] == 2 and st.session_state['dataset'] is no
 
         # Pulsante per passare allo Step 3
         if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
-            st.session_state['current_step'] = 3
+            st.session_state['proceed_to_step_3'] = True
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
-elif st.session_state['current_step'] == 3 and st.session_state['dataset'] is not None:
-    dataset = st.session_state['dataset']  # Recupera il dataset da session_state
+if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
     with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=True):
         with st.spinner('Analisi dei dati mancanti in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
@@ -169,16 +147,11 @@ elif st.session_state['current_step'] == 3 and st.session_state['dataset'] is no
         tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
 
         with tab1:
-            variable_types = pd.DataFrame({
-                'Colonna': dataset.columns,
-                'Tipo': dataset.dtypes,
-                'Categoria': [categorize_variable(dataset, col) for col in dataset.columns]
-            })
             missing_summary = pd.DataFrame({
                 'Variabile': dataset.columns,
                 'Valori Mancanti': dataset.isnull().sum(),
                 'Percentuale Mancante (%)': dataset.isnull().mean() * 100,
-                'Tipo Variabile': variable_types['Categoria']
+                'Tipo Variabile': dataset.columns.map(lambda col: categorize_variable(col))
             }).reset_index(drop=True)
             st.write(missing_summary)
 
@@ -208,6 +181,3 @@ elif st.session_state['current_step'] == 3 and st.session_state['dataset'] is no
                 st.pyplot(plt)
             else:
                 st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
-
-# Aggiungi ulteriori step se necessario, utilizzando lo stesso approccio
-
