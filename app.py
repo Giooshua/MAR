@@ -44,24 +44,7 @@ with st.expander("Step 1: Caricamento del Dataset", expanded=True):
             st.success(f"Dataset caricato con successo! Righe: {dataset.shape[0]}, Colonne: {dataset.shape[1]}")
             st.write(dataset.head())
 
-            # Chiedi se l'utente vuole passare allo Step 2
-            if st.button("Panoramica Esplorativa del Dataset"):
-                st.session_state['proceed_to_step_2'] = True
-
-        else:
-            st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
-
-# STEP 2: Panoramica Esplorativa del Dataset
-# ----------------------------------------
-if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
-    with st.expander("Step 2: Panoramica Esplorativa del Dataset", expanded=True):
-        with st.spinner('Caricamento in corso...'):
-            time.sleep(2)  # Simulazione del tempo di caricamento
-
-        # Creazione della dashboard interattiva
-        tab1, tab2, tab3, tab4 = st.tabs(["Tipologia delle Variabili", "Statistiche Descrittive", "Visualizzazioni", "Heatmap delle Correlazioni"])
-
-        with tab1:
+            # Definizione della funzione categorize_variable
             def categorize_variable(column):
                 if dataset[column].dtype in ['float64', 'float32']:
                     return 'Quantitativa - Continua'
@@ -75,6 +58,24 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 else:
                     return 'Categorica - Nominale'
 
+            # Chiedi se l'utente vuole passare allo Step 2
+            if st.button("Panoramica Esplorativa del Dataset"):
+                st.session_state['proceed_to_step_2'] = True
+
+        else:
+            st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
+
+# STEP 2: Panoramica Esplorativa del Dataset
+# ----------------------------------------
+if st.session_state['proceed_to_step_2'] and not st.session_state['proceed_to_step_3'] and uploaded_file is not None:
+    with st.expander("Step 2: Panoramica Esplorativa del Dataset", expanded=True):
+        with st.spinner('Caricamento in corso...'):
+            time.sleep(2)  # Simulazione del tempo di caricamento
+
+        # Creazione della dashboard interattiva
+        tab1, tab2, tab3, tab4 = st.tabs(["Tipologia delle Variabili", "Statistiche Descrittive", "Visualizzazioni", "Heatmap delle Correlazioni"])
+
+        with tab1:
             variable_types = pd.DataFrame({
                 'Colonna': dataset.columns,
                 'Tipo': dataset.dtypes,
@@ -135,6 +136,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
         # Pulsante per passare allo Step 3
         if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
             st.session_state['proceed_to_step_3'] = True
+            st.session_state['proceed_to_step_2'] = False  # Aggiunta questa linea
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
@@ -151,7 +153,7 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 'Variabile': dataset.columns,
                 'Valori Mancanti': dataset.isnull().sum(),
                 'Percentuale Mancante (%)': dataset.isnull().mean() * 100,
-                'Tipo Variabile': dataset.columns.map(lambda col: categorize_variable(col))
+                'Tipo Variabile': dataset.columns.map(categorize_variable)
             }).reset_index(drop=True)
             st.write(missing_summary)
 
