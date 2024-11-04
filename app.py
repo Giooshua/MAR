@@ -133,9 +133,8 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
 
         # Pulsante per passare allo Step 3
-        with st.container():
-            if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
-                st.session_state['proceed_to_step_3'] = True
+        if st.button("Analisi dell'Entità dei Dati Mancanti", key='step_3_button'):
+            st.session_state['proceed_to_step_3'] = True
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
