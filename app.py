@@ -6,7 +6,7 @@ import time
 import missingno as msno
 
 # Titolo dell'applicazione
-st.set_page_config(page_title="MAR Algorithm", page_icon="🧐")
+st.set_page_config(page_title="MAR Algorithm", page_icon="🤔")
 
 # Titolo e logo dell'applicazione
 st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
@@ -150,10 +150,6 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         # Creazione di una copia del dataset originale
         filtered_dataset = dataset.copy()
 
-        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
-        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
-        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
-
         # Creazione della dashboard interattiva per l'analisi dei dati mancanti
         tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
 
@@ -192,6 +188,11 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 st.pyplot(plt)
             else:
                 st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
+
+        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
+        st.markdown("### Selezione delle Variabili da Escludere")
+        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
+        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
 
         # Selezione delle osservazioni da escludere
         st.markdown("### Selezione delle Osservazioni da Escludere")
