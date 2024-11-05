@@ -205,6 +205,9 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
             except Exception as e:
                 st.error(f"Errore nel criterio di esclusione: {str(e)}")
 
-        # Imputazione o analisi successiva da effettuare solo su filtered_dataset
-        # Successivamente, il dataset originale rimane intatto e possiamo riutilizzarlo
-        # Il dataset con imputazioni può essere unito al dataset originale, se necessario
+        # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
+        # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
+
+        # Imputazione o analisi successiva
+        st.markdown("### Imputazione dei Dati Mancanti")
+        st.write("Le variabili e le osservazioni escluse verranno automaticamente reintegrate dopo l'imputazione per visualizzare il dataset completo.")
