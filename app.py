@@ -150,7 +150,11 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         # Creazione di una copia del dataset originale
         filtered_dataset = dataset.copy()
 
-                # Creazione della dashboard interattiva per l'analisi dei dati mancanti
+        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
+        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
+        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
+
+        # Creazione della dashboard interattiva per l'analisi dei dati mancanti
         tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
 
         with tab1:
