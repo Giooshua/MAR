@@ -150,24 +150,44 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         # Creazione di una copia del dataset originale
         filtered_dataset = dataset.copy()
 
-        
+                # Creazione della dashboard interattiva per l'analisi dei dati mancanti
+        tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
 
-        
+        with tab1:
+            missing_summary = pd.DataFrame({
+                'Variabile': filtered_dataset.columns,
+                'Valori Mancanti': filtered_dataset.isnull().sum(),
+                'Percentuale Mancante (%)': filtered_dataset.isnull().mean() * 100,
+                'Tipo Variabile': filtered_dataset.columns.map(lambda col: categorize_variable(col))
+            }).reset_index(drop=True)
+            st.write(missing_summary)
 
-        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
-        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
-        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
+        with tab2:
+            missing_values = filtered_dataset.isnull().sum()
+            missing_values = missing_values[missing_values > 0]
 
-        # Selezione delle osservazioni da escludere
-        st.markdown("### Selezione delle Osservazioni da Escludere")
-        st.markdown("Inserisci un criterio per escludere le osservazioni dal dataset. Puoi usare condizioni come `colonna == valore`, `colonna > valore`, etc. Ad esempio: `Age > 30` per escludere tutte le osservazioni con `Age` maggiore di 30.")
-        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni:")
-        if st.session_state['exclude_observations']:
-            try:
-                filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
-                st.write("Osservazioni escluse in base al criterio specificato.")
-            except Exception as e:
-                st.error(f"Errore nel criterio di esclusione: {str(e)}")
+            if not missing_values.empty:
+                plt.figure(figsize=(10, 6))
+                sns.barplot(x=missing_values.index, y=missing_values.values, palette="viridis")
+                plt.xticks(rotation=45)
+                plt.xlabel('Variabile')
+                plt.ylabel('Numero di Valori Mancanti')
+                plt.title('Valori Mancanti per Variabile')
+                st.pyplot(plt)
+
+                msno.matrix(filtered_dataset)
+                plt.title('Matrice dei Valori Mancanti nel Dataset')
+                st.pyplot(plt)
+            else:
+                st.write("Non ci sono valori mancanti nel dataset.")
+
+        with tab3:
+            if filtered_dataset.isnull().sum().sum() > 0:
+                msno.heatmap(filtered_dataset)
+                plt.title('Correlazione dei Valori Mancanti tra le Variabili')
+                st.pyplot(plt)
+            else:
+                st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
 
         # Selezione delle osservazioni da escludere
         st.markdown("### Selezione delle Osservazioni da Escludere")
