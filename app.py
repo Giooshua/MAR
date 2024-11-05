@@ -147,20 +147,12 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         with st.spinner('Analisi dei dati mancanti in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
 
+        # Creazione di una copia del dataset originale
+        filtered_dataset = dataset.copy()
+
         # Selezione delle variabili da escludere dall'analisi dei dati mancanti
         st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
-        filtered_dataset = dataset.drop(columns=st.session_state['exclude_variables'])
-
-        # Selezione delle osservazioni da escludere
-        st.markdown("### Selezione delle Osservazioni da Escludere")
-        st.markdown("Inserisci un criterio per escludere le osservazioni dal dataset. Puoi usare condizioni come `colonna == valore`, `colonna > valore`, etc. Ad esempio: `Age > 30` per escludere tutte le osservazioni con `Age` maggiore di 30.")
-        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni:")
-        if st.session_state['exclude_observations']:
-            try:
-                filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
-                st.write("Osservazioni escluse in base al criterio specificato.")
-            except Exception as e:
-                st.error(f"Errore nel criterio di esclusione: {str(e)}")
+        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
 
         # Creazione della dashboard interattiva per l'analisi dei dati mancanti
         tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
@@ -200,3 +192,18 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 st.pyplot(plt)
             else:
                 st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
+
+        # Selezione delle osservazioni da escludere
+        st.markdown("### Selezione delle Osservazioni da Escludere")
+        st.markdown("Inserisci un criterio per escludere le osservazioni dal dataset. Puoi usare condizioni come `colonna == valore`, `colonna > valore`, etc. Ad esempio: `Age > 30` per escludere tutte le osservazioni con `Age` maggiore di 30.")
+        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni:")
+        if st.session_state['exclude_observations']:
+            try:
+                filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
+                st.write("Osservazioni escluse in base al criterio specificato.")
+            except Exception as e:
+                st.error(f"Errore nel criterio di esclusione: {str(e)}")
+
+        # Imputazione o analisi successiva da effettuare solo su filtered_dataset
+        # Successivamente, il dataset originale rimane intatto e possiamo riutilizzarlo
+        # Il dataset con imputazioni può essere unito al dataset originale, se necessario
