@@ -187,6 +187,7 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 st.write("Non ci sono valori mancanti nel dataset.")
                 if st.button("Passa allo Step 4 - Analisi Successiva", key='step_4_button_no_missing'):
                     st.session_state['proceed_to_step_4'] = True
+                    st.session_state['missinghandled_dataset'] = dataset.copy()
 
         with tab3:
             if dataset.isnull().sum().sum() > 0:
@@ -253,14 +254,15 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
 
             # Ripristina le variabili e osservazioni escluse
             excluded_variables = dataset[st.session_state['exclude_variables']] if st.session_state['exclude_variables'] else pd.DataFrame()
-            final_dataset = pd.concat([filtered_dataset, excluded_variables], axis=1)
+            missinghandled_dataset = pd.concat([filtered_dataset, excluded_variables], axis=1)
 
             if st.session_state['exclude_observations']:
                 excluded_observations = dataset.query(f"not ({st.session_state['exclude_observations']})")
-                final_dataset = pd.concat([final_dataset, excluded_observations], axis=0).drop_duplicates()
+                missinghandled_dataset = pd.concat([missinghandled_dataset, excluded_observations], axis=0).drop_duplicates()
 
+            st.session_state['missinghandled_dataset'] = missinghandled_dataset
             st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
-            st.write(final_dataset.head())
+            st.write(missinghandled_dataset.head())
 
         # Pulsante per passare allo Step 4 dopo imputazione completata
         if st.button("Passa allo Step 4 - Gestione degli Outlier", key='step_4_button_after_imputation'):
@@ -270,16 +272,16 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
 # ----------------------------------------
 if st.session_state['proceed_to_step_4']:
     st.header("Step 4: Gestione degli Outlier")
-    st.write("In questa sezione verrà affrontata la gestione degli outlier nel final_dataset pulito.")
+    st.write("In questa sezione verrà affrontata la gestione degli outlier nel missinghandled_dataset pulito.")
 
     # Seleziona le variabili numeriche per la gestione degli outlier
-    numeric_columns = final_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns
+    numeric_columns = st.session_state['missinghandled_dataset'].select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns
     selected_outlier_variable = st.selectbox("Seleziona una variabile per gestire gli outlier:", options=numeric_columns, index=0)
 
     if selected_outlier_variable:
         st.write(f"Analisi degli outlier per la variabile: {selected_outlier_variable}")
         fig, ax = plt.subplots(figsize=(10, 6))
-        sns.boxplot(x=final_dataset[selected_outlier_variable], ax=ax)
+        sns.boxplot(x=st.session_state['missinghandled_dataset'][selected_outlier_variable], ax=ax)
         st.pyplot(fig)
 
         # Definizione del metodo per gestire gli outlier
@@ -287,21 +289,21 @@ if st.session_state['proceed_to_step_4']:
 
         if st.button("Applica Gestione degli Outlier"):
             if outlier_method == "Rimuovi outlier":
-                Q1 = final_dataset[selected_outlier_variable].quantile(0.25)
-                Q3 = final_dataset[selected_outlier_variable].quantile(0.75)
+                Q1 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.25)
+                Q3 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.75)
                 IQR = Q3 - Q1
-                filtered_dataset = final_dataset[~((final_dataset[selected_outlier_variable] < (Q1 - 1.5 * IQR)) | (final_dataset[selected_outlier_variable] > (Q3 + 1.5 * IQR)))]
+                missinghandled_dataset = st.session_state['missinghandled_dataset'][~((st.session_state['missinghandled_dataset'][selected_outlier_variable] < (Q1 - 1.5 * IQR)) | (st.session_state['missinghandled_dataset'][selected_outlier_variable] > (Q3 + 1.5 * IQR)))]
                 st.write("Outlier rimossi con successo.")
             elif outlier_method == "Sostituisci con la mediana":
-                Q1 = final_dataset[selected_outlier_variable].quantile(0.25)
-                Q3 = final_dataset[selected_outlier_variable].quantile(0.75)
+                Q1 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.25)
+                Q3 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.75)
                 IQR = Q3 - Q1
-                median_value = final_dataset[selected_outlier_variable].median()
-                final_dataset[selected_outlier_variable] = final_dataset[selected_outlier_variable].apply(lambda x: median_value if (x < (Q1 - 1.5 * IQR)) or (x > (Q3 + 1.5 * IQR)) else x)
+                median_value = st.session_state['missinghandled_dataset'][selected_outlier_variable].median()
+                st.session_state['missinghandled_dataset'][selected_outlier_variable] = st.session_state['missinghandled_dataset'][selected_outlier_variable].apply(lambda x: median_value if (x < (Q1 - 1.5 * IQR)) or (x > (Q3 + 1.5 * IQR)) else x)
                 st.write("Outlier sostituiti con la mediana con successo.")
             elif outlier_method == "Winsorize":
                 from scipy.stats.mstats import winsorize
-                final_dataset[selected_outlier_variable] = winsorize(final_dataset[selected_outlier_variable], limits=[0.05, 0.05])
+                st.session_state['missinghandled_dataset'][selected_outlier_variable] = winsorize(st.session_state['missinghandled_dataset'][selected_outlier_variable], limits=[0.05, 0.05])
                 st.write("Outlier winsorizzati con successo.")
 
-            st.write(final_dataset.head())
+            st.write(st.session_state['missinghandled_dataset'].head())
