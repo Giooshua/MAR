@@ -3,5 +3,4 @@ pandas
 matplotlib
 seaborn
 missingno
-statsmodels
-pingouin
+missingpy 
