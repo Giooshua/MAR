@@ -219,14 +219,14 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         # Suggerimento per l'Imputazione dei Dati Mancanti
         if st.button("Suggerimento per l'Imputazione"):
             suggestion = ""
-            if missing_summary['Percentuale Mancante (%)'].max() > 50:
-                suggestion = "MAR ha trovato più del 50% di valori mancanti in alcune variabili. Suggerisce di utilizzare il metodo 'Più frequente' per evitare di introdurre troppa variabilità."
-            elif missing_summary['Percentuale Mancante (%)'].mean() < 20:
-                suggestion = "MAR ha rilevato che la percentuale media di valori mancanti è inferiore al 20%. Si suggerisce di utilizzare 'Media' o 'Mediana' per l'imputazione."
+            if missing_summary['Percentuale Mancante (%)'].max() > 30:
+                suggestion = "MAR ha trovato una percentuale elevata di valori mancanti. Suggerisce di utilizzare 'KNN Imputer' o 'Iterative Imputer' per ottenere imputazioni più accurate."
             elif dataset.corr().abs().max().max() > 0.7:
                 suggestion = "I dati sono altamente correlati. MAR suggerisce di utilizzare 'Iterative Imputer' per mantenere la coerenza tra le variabili."
+            elif missing_summary['Percentuale Mancante (%)'].mean() < 10:
+                suggestion = "La percentuale media di valori mancanti è bassa. Potrebbe essere sufficiente utilizzare 'Media' o 'Mediana' per l'imputazione."
             else:
-                suggestion = "Potrebbe essere opportuno utilizzare 'KNN Imputer' se le variabili con valori mancanti sono simili nello spazio delle caratteristiche."
+                suggestion = "Considera l'utilizzo di 'Iterative Imputer' o 'KNN Imputer' per migliorare l'accuratezza delle imputazioni."
             
             st.info(suggestion)
 
