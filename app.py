@@ -39,6 +39,8 @@ if 'proceed_to_step_4' not in st.session_state:
     st.session_state['proceed_to_step_4'] = False
 if 'missinghandled_dataset' not in st.session_state:
     st.session_state['missinghandled_dataset'] = None
+if 'proceed_to_step_5' not in st.session_state:
+    st.session_state['proceed_to_step_5'] = False
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -295,7 +297,7 @@ if st.session_state['proceed_to_step_4'] and st.session_state['missinghandled_da
                     Q1 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.25)
                     Q3 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.75)
                     IQR = Q3 - Q1
-                    missinghandled_dataset = st.session_state['missinghandled_dataset'][~((st.session_state['missinghandled_dataset'][selected_outlier_variable] < (Q1 - 1.5 * IQR)) | (st.session_state['missinghandled_dataset'][selected_outlier_variable] > (Q3 + 1.5 * IQR)))]
+                    st.session_state['missinghandled_dataset'] = st.session_state['missinghandled_dataset'][~((st.session_state['missinghandled_dataset'][selected_outlier_variable] < (Q1 - 1.5 * IQR)) | (st.session_state['missinghandled_dataset'][selected_outlier_variable] > (Q3 + 1.5 * IQR)))]
                     st.write("Outlier rimossi con successo.")
                 elif outlier_method == "Sostituisci con la mediana":
                     Q1 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.25)
@@ -310,3 +312,15 @@ if st.session_state['proceed_to_step_4'] and st.session_state['missinghandled_da
                     st.write("Outlier winsorizzati con successo.")
 
                 st.write(st.session_state['missinghandled_dataset'].head())
+
+        # Pulsante per passare allo Step 5, indipendentemente dall'applicazione di modifiche agli outlier
+        if st.button("Passa allo Step 5 - Analisi Successiva", key='step_5_button'):
+            st.session_state['proceed_to_step_5'] = True
+
+# STEP 5: Analisi Successiva
+# ----------------------------------------
+if st.session_state['proceed_to_step_5']:
+    with st.expander("Step 5: Analisi Successiva", expanded=True):
+        st.write("In questa sezione verranno eseguite ulteriori analisi sul dataset elaborato.")
+        # Qui si possono aggiungere ulteriori analisi o visualizzazioni richieste
+        st.write(st.session_state['missinghandled_dataset'].head())
