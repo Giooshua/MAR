@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import time
 import missingno as msno
+from statsmodels.stats.missing import test_mcar  # Little's MCAR test
+import numpy as np
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🤔")
@@ -51,7 +53,6 @@ with st.expander("Step 1: Caricamento del Dataset", expanded=True):
             # Chiedi se l'utente vuole passare allo Step 2
             if st.button("Panoramica Esplorativa del Dataset"):
                 st.session_state['proceed_to_step_2'] = True
-
         else:
             st.error("Caricamento del dataset fallito. Verifica il file e riprova.")
 
@@ -150,8 +151,24 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         # Creazione di una copia del dataset originale
         filtered_dataset = dataset.copy()
 
+        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
+        st.markdown("### Selezione delle Variabili da Escludere")
+        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
+        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
+
+        # Selezione delle osservazioni da escludere
+        st.markdown("### Selezione delle Osservazioni da Escludere")
+        st.markdown("Inserisci un criterio per escludere le osservazioni dal dataset. Puoi usare condizioni come `colonna == valore`, `colonna > valore`, etc. Ad esempio: `Age > 30` per escludere tutte le osservazioni con `Age` maggiore di 30.")
+        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni:")
+        if st.session_state['exclude_observations']:
+            try:
+                filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
+                st.write("Osservazioni escluse in base al criterio specificato.")
+            except Exception as e:
+                st.error(f"Errore nel criterio di esclusione: {str(e)}")
+
         # Creazione della dashboard interattiva per l'analisi dei dati mancanti
-        tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
+        tab1, tab2, tab3, tab4 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness", "Analisi MCAR/MAR/MNAR"])
 
         with tab1:
             missing_summary = pd.DataFrame({
@@ -189,21 +206,30 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
             else:
                 st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
 
-        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
-        st.markdown("### Selezione delle Variabili da Escludere")
-        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
-        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
+        with tab4:
+            st.markdown("### Analisi MCAR, MAR e MNAR")
+            if filtered_dataset.isnull().sum().sum() > 0:
+                try:
+                    # Esegui il test di Little's MCAR
+                    result = test_mcar(filtered_dataset)
+                    st.write("#### Risultati del Test di Little per MCAR")
+                    st.write(f"Statistiche Chi-Square: {result.statistic}")
+                    st.write(f"p-value: {result.p_value}")
+                    if result.p_value > 0.05:
+                        st.success("Non ci sono prove sufficienti per rifiutare l'ipotesi che i dati siano MCAR.")
+                    else:
+                        st.warning("Esistono prove per rifiutare l'ipotesi che i dati siano MCAR. Ulteriore analisi è necessaria per determinare MAR o MNAR.")
+                except Exception as e:
+                    st.error(f"Errore durante l'esecuzione del test MCAR: {str(e)}")
 
-        # Selezione delle osservazioni da escludere
-        st.markdown("### Selezione delle Osservazioni da Escludere")
-        st.markdown("Inserisci un criterio per escludere le osservazioni dal dataset. Puoi usare condizioni come `colonna == valore`, `colonna > valore`, etc. Ad esempio: `Age > 30` per escludere tutte le osservazioni con `Age` maggiore di 30.")
-        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni:")
-        if st.session_state['exclude_observations']:
-            try:
-                filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
-                st.write("Osservazioni escluse in base al criterio specificato.")
-            except Exception as e:
-                st.error(f"Errore nel criterio di esclusione: {str(e)}")
+                # Analisi visiva per MAR e MNAR
+                st.markdown("#### Analisi Visiva per Identificare MAR e MNAR")
+                sns.pairplot(filtered_dataset, kind="scatter", plot_kws={'alpha':0.3})
+                plt.title('Analisi Visiva delle Relazioni tra le Variabili')
+                st.pyplot(plt)
+                st.info("Se esistono pattern specifici nei valori mancanti, è probabile che i dati siano MAR o MNAR.")
+            else:
+                st.write("Non ci sono abbastanza dati mancanti per eseguire un'analisi MCAR/MAR/MNAR.")
 
         # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
         # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
