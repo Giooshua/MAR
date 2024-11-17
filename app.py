@@ -169,4 +169,91 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
 
             if not missing_values.empty:
                 plt.figure(figsize=(10, 6))
-                sns.barplot(x
+                sns.barplot(x=missing_values.index, y=missing_values.values, palette="viridis")
+                plt.xticks(rotation=45)
+                plt.xlabel('Variabile')
+                plt.ylabel('Numero di Valori Mancanti')
+                plt.title('Valori Mancanti per Variabile')
+                st.pyplot(plt)
+                plt.close()
+
+                msno.matrix(dataset)
+                plt.title('Matrice dei Valori Mancanti nel Dataset')
+                st.pyplot(plt)
+                plt.close()
+            else:
+                st.write("Non ci sono valori mancanti nel dataset.")
+
+        with tab3:
+            if dataset.isnull().sum().sum() > 0:
+                msno.heatmap(dataset)
+                plt.title('Correlazione dei Valori Mancanti tra le Variabili')
+                st.pyplot(plt)
+                plt.close()
+            else:
+                st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
+
+        # Selezione delle variabili da escludere dall'analisi dei dati mancanti
+        st.markdown("### Selezione delle Variabili da Escludere")
+        st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
+        filtered_dataset = dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
+
+        # Selezione delle osservazioni da escludere
+        st.markdown("### Selezione delle Osservazioni da Escludere")
+        st.markdown("Inserisci un criterio per escludere le osservazioni dal dataset. Puoi usare condizioni come `colonna == valore`, `colonna > valore`, etc. Ad esempio: `Age > 30` per escludere tutte le osservazioni con `Age` maggiore di 30.")
+        st.session_state['exclude_observations'] = st.text_input("Inserisci il criterio per escludere le osservazioni:")
+        if st.session_state['exclude_observations']:
+            try:
+                filtered_dataset = filtered_dataset.query(f"{st.session_state['exclude_observations']}")
+                st.write("Osservazioni escluse in base al criterio specificato.")
+            except Exception as e:
+                st.error(f"Errore nel criterio di esclusione: {str(e)}")
+
+        # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
+        # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
+
+        # Selezione della Strategia di Imputazione
+        st.markdown("### Seleziona la Strategia di Imputazione")
+        st.session_state['imputation_strategy'] = st.selectbox("Seleziona la strategia di imputazione:", options=['Media', 'Mediana', 'Più frequente', 'Iterative Imputer', 'KNN Imputer'], index=0)
+        
+        # Suggerimento per l'Imputazione dei Dati Mancanti
+        if st.button("Suggerimento per l'Imputazione"):
+            suggestion = ""
+            if missing_summary['Percentuale Mancante (%)'].max() > 30:
+                suggestion = "MAR ha trovato una percentuale elevata di valori mancanti. Suggerisce di utilizzare 'KNN Imputer' o 'Iterative Imputer' per ottenere imputazioni più accurate."
+            elif dataset.corr().abs().max().max() > 0.7:
+                suggestion = "I dati sono altamente correlati. MAR suggerisce di utilizzare 'Iterative Imputer' per mantenere la coerenza tra le variabili."
+            elif missing_summary['Percentuale Mancante (%)'].mean() < 10:
+                suggestion = "La percentuale media di valori mancanti è bassa. Potrebbe essere sufficiente utilizzare 'Media' o 'Mediana' per l'imputazione."
+            else:
+                suggestion = "Considera l'utilizzo di 'Iterative Imputer' o 'KNN Imputer' per migliorare l'accuratezza delle imputazioni."
+            
+            st.info(suggestion)
+
+        # Imputazione dei Dati Mancanti
+        if st.button("Applica Imputazione"):
+            imputation_strategy = st.session_state['imputation_strategy']
+            if imputation_strategy == 'Media':
+                imputer = SimpleImputer(strategy='mean')
+            elif imputation_strategy == 'Mediana':
+                imputer = SimpleImputer(strategy='median')
+            elif imputation_strategy == 'Più frequente':
+                imputer = SimpleImputer(strategy='most_frequent')
+            elif imputation_strategy == 'Iterative Imputer':
+                imputer = IterativeImputer()
+            elif imputation_strategy == 'KNN Imputer':
+                imputer = KNNImputer()
+            
+            imputed_data = imputer.fit_transform(filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']))
+            filtered_dataset.loc[:, filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns] = imputed_data
+
+            # Ripristina le variabili e osservazioni escluse
+            excluded_variables = dataset[st.session_state['exclude_variables']] if st.session_state['exclude_variables'] else pd.DataFrame()
+            final_dataset = pd.concat([filtered_dataset, excluded_variables], axis=1)
+
+            if st.session_state['exclude_observations']:
+                excluded_observations = dataset.query(f"not ({st.session_state['exclude_observations']})")
+                final_dataset = pd.concat([final_dataset, excluded_observations], axis=0).drop_duplicates()
+
+            st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
+            st.write(final_dataset.head())
