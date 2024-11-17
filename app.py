@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import time
 import missingno as msno
-from statsmodels.stats.missingno import test_mcar  # Little's MCAR test
+from pingouin import mcar_test  # Little's MCAR test
 import numpy as np
 
 # Titolo dell'applicazione
@@ -211,11 +211,11 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
             if filtered_dataset.isnull().sum().sum() > 0:
                 try:
                     # Esegui il test di Little's MCAR
-                    result = test_mcar(filtered_dataset)
+                    result = mcar_test(filtered_dataset)
                     st.write("#### Risultati del Test di Little per MCAR")
-                    st.write(f"Statistiche Chi-Square: {result.statistic}")
-                    st.write(f"p-value: {result.p_value}")
-                    if result.p_value > 0.05:
+                    st.write(f"Statistiche Chi-Square: {result['chi2'].values[0]}")
+                    st.write(f"p-value: {result['pval'].values[0]}")
+                    if result['pval'].values[0] > 0.05:
                         st.success("Non ci sono prove sufficienti per rifiutare l'ipotesi che i dati siano MCAR.")
                     else:
                         st.warning("Esistono prove per rifiutare l'ipotesi che i dati siano MCAR. Ulteriore analisi è necessaria per determinare MAR o MNAR.")
