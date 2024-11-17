@@ -148,13 +148,49 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         with st.spinner('Analisi dei dati mancanti in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
 
-        # Creazione di una copia del dataset originale
-        filtered_dataset = dataset.copy()
+        # Creazione della dashboard interattiva per l'analisi dei dati mancanti
+        tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
+
+        with tab1:
+            missing_summary = pd.DataFrame({
+                'Variabile': dataset.columns,
+                'Valori Mancanti': dataset.isnull().sum(),
+                'Percentuale Mancante (%)': dataset.isnull().mean() * 100,
+                'Tipo Variabile': dataset.columns.map(lambda col: categorize_variable(col))
+            }).reset_index(drop=True)
+            st.write(missing_summary)
+
+        with tab2:
+            missing_values = dataset.isnull().sum()
+            missing_values = missing_values[missing_values > 0]
+
+            if not missing_values.empty:
+                plt.figure(figsize=(10, 6))
+                sns.barplot(x=missing_values.index, y=missing_values.values, palette="viridis")
+                plt.xticks(rotation=45)
+                plt.xlabel('Variabile')
+                plt.ylabel('Numero di Valori Mancanti')
+                plt.title('Valori Mancanti per Variabile')
+                st.pyplot(plt)
+
+                msno.matrix(dataset)
+                plt.title('Matrice dei Valori Mancanti nel Dataset')
+                st.pyplot(plt)
+            else:
+                st.write("Non ci sono valori mancanti nel dataset.")
+
+        with tab3:
+            if dataset.isnull().sum().sum() > 0:
+                msno.heatmap(dataset)
+                plt.title('Correlazione dei Valori Mancanti tra le Variabili')
+                st.pyplot(plt)
+            else:
+                st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
 
         # Selezione delle variabili da escludere dall'analisi dei dati mancanti
         st.markdown("### Selezione delle Variabili da Escludere")
         st.session_state['exclude_variables'] = st.multiselect("Seleziona variabili da escludere dall'analisi dei dati mancanti:", options=dataset.columns)
-        filtered_dataset = filtered_dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
+        filtered_dataset = dataset.drop(columns=st.session_state['exclude_variables'], errors='ignore')
 
         # Selezione delle osservazioni da escludere
         st.markdown("### Selezione delle Osservazioni da Escludere")
@@ -167,63 +203,24 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
             except Exception as e:
                 st.error(f"Errore nel criterio di esclusione: {str(e)}")
 
-        # Creazione della dashboard interattiva per l'analisi dei dati mancanti
-        tab1, tab2, tab3, tab4 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness", "Analisi MCAR/MAR/MNAR"])
+        # Analisi MCAR, MAR, MNAR
+        st.markdown("### Analisi MCAR, MAR e MNAR")
+        if filtered_dataset.isnull().sum().sum() > 0:
+            try:
+                # Placeholder for MCAR Test
+                st.write("#### Test MCAR Placeholder")
+                st.warning("Il test MCAR non è attualmente disponibile. Questo è un placeholder per l'analisi successiva.")
+            except Exception as e:
+                st.error(f"Errore durante l'esecuzione del test MCAR: {str(e)}")
 
-        with tab1:
-            missing_summary = pd.DataFrame({
-                'Variabile': filtered_dataset.columns,
-                'Valori Mancanti': filtered_dataset.isnull().sum(),
-                'Percentuale Mancante (%)': filtered_dataset.isnull().mean() * 100,
-                'Tipo Variabile': filtered_dataset.columns.map(lambda col: categorize_variable(col))
-            }).reset_index(drop=True)
-            st.write(missing_summary)
-
-        with tab2:
-            missing_values = filtered_dataset.isnull().sum()
-            missing_values = missing_values[missing_values > 0]
-
-            if not missing_values.empty:
-                plt.figure(figsize=(10, 6))
-                sns.barplot(x=missing_values.index, y=missing_values.values, palette="viridis")
-                plt.xticks(rotation=45)
-                plt.xlabel('Variabile')
-                plt.ylabel('Numero di Valori Mancanti')
-                plt.title('Valori Mancanti per Variabile')
-                st.pyplot(plt)
-
-                msno.matrix(filtered_dataset)
-                plt.title('Matrice dei Valori Mancanti nel Dataset')
-                st.pyplot(plt)
-            else:
-                st.write("Non ci sono valori mancanti nel dataset.")
-
-        with tab3:
-            if filtered_dataset.isnull().sum().sum() > 0:
-                msno.heatmap(filtered_dataset)
-                plt.title('Correlazione dei Valori Mancanti tra le Variabili')
-                st.pyplot(plt)
-            else:
-                st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
-
-        with tab4:
-            st.markdown("### Analisi MCAR, MAR e MNAR")
-            if filtered_dataset.isnull().sum().sum() > 0:
-                try:
-                    # Placeholder for MCAR Test
-                    st.write("#### Test MCAR Placeholder")
-                    st.warning("Il test MCAR non è attualmente disponibile. Questo è un placeholder per l'analisi successiva.")
-                except Exception as e:
-                    st.error(f"Errore durante l'esecuzione del test MCAR: {str(e)}")
-
-                # Analisi visiva per MAR e MNAR
-                st.markdown("#### Analisi Visiva per Identificare MAR e MNAR")
-                sns.pairplot(filtered_dataset, kind="scatter", plot_kws={'alpha':0.3})
-                plt.title('Analisi Visiva delle Relazioni tra le Variabili')
-                st.pyplot(plt)
-                st.info("Se esistono pattern specifici nei valori mancanti, è probabile che i dati siano MAR o MNAR.")
-            else:
-                st.write("Non ci sono abbastanza dati mancanti per eseguire un'analisi MCAR/MAR/MNAR.")
+            # Analisi visiva per MAR e MNAR
+            st.markdown("#### Analisi Visiva per Identificare MAR e MNAR")
+            sns.pairplot(filtered_dataset, kind="scatter", plot_kws={'alpha':0.3})
+            plt.title('Analisi Visiva delle Relazioni tra le Variabili')
+            st.pyplot(plt)
+            st.info("Se esistono pattern specifici nei valori mancanti, è probabile che i dati siano MAR o MNAR.")
+        else:
+            st.write("Non ci sono abbastanza dati mancanti per eseguire un'analisi MCAR/MAR/MNAR.")
 
         # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
         # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
