@@ -322,5 +322,30 @@ if st.session_state['proceed_to_step_4'] and st.session_state['missinghandled_da
 if st.session_state['proceed_to_step_5']:
     with st.expander("Step 5: Analisi Successiva", expanded=True):
         st.write("In questa sezione verranno eseguite ulteriori analisi sul dataset elaborato.")
-        # Qui si possono aggiungere ulteriori analisi o visualizzazioni richieste
+
+        # Domande per identificare il tipo di analisi appropriato
+        st.markdown("### Domande per identificare il tipo di analisi appropriato")
+        target_present = st.radio("Hai una variabile target che desideri prevedere?", ('Sì', 'No'))
+
+        if target_present == 'Sì':
+            target_variable = st.selectbox("Seleziona la variabile target:", options=list(st.session_state['missinghandled_dataset'].columns))
+            target_type = st.radio("Che tipo di variabile è la variabile target?", ('Qualitativa (categoriale)', 'Quantitativa (numerica)'))
+
+            if target_type == 'Qualitativa (categoriale)':
+                st.write("Suggerimento: Un modello di **classificazione** è appropriato per la variabile target selezionata.")
+            elif target_type == 'Quantitativa (numerica)':
+                st.write("Suggerimento: Un modello di **regressione** è appropriato per la variabile target selezionata.")
+        else:
+            st.write("Suggerimento: Poiché non hai una variabile target, puoi considerare un approccio di **clustering** per identificare gruppi simili all'interno dei dati.")
+
+        # Ulteriori domande per affinare il suggerimento
+        if target_present == 'Sì':
+            balanced_classes = st.radio("Le diverse categorie della variabile target sono equilibrate in termini di frequenza?", ('Sì', 'No'))
+            if balanced_classes == 'No' and target_type == 'Qualitativa (categoriale)':
+                st.write("Suggerimento: Le classi sono sbilanciate. Considera l'uso di tecniche come **SMOTE** per bilanciare le classi prima di applicare un modello di classificazione.")
+
+        multicollinearity = st.radio("Pensi che ci siano molte variabili correlate tra loro?", ('Sì', 'No'))
+        if multicollinearity == 'Sì':
+            st.write("Suggerimento: Potresti considerare l'utilizzo di tecniche di **riduzione della dimensionalità** come l'Analisi delle Componenti Principali (PCA) per ridurre la multicollinearità prima di applicare un modello.")
+
         st.write(st.session_state['missinghandled_dataset'].head())
