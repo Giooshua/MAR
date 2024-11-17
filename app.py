@@ -35,6 +35,8 @@ if 'exclude_observations' not in st.session_state:
     st.session_state['exclude_observations'] = []
 if 'imputation_strategy' not in st.session_state:
     st.session_state['imputation_strategy'] = 'mean'
+if 'proceed_to_step_4' not in st.session_state:
+    st.session_state['proceed_to_step_4'] = False
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -183,6 +185,8 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 plt.close()
             else:
                 st.write("Non ci sono valori mancanti nel dataset.")
+                if st.button("Passa allo Step 4 - Analisi Successiva", key='step_4_button_no_missing'):
+                    st.session_state['proceed_to_step_4'] = True
 
         with tab3:
             if dataset.isnull().sum().sum() > 0:
@@ -257,3 +261,13 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
 
             st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
             st.write(final_dataset.head())
+
+            # Pulsante per passare allo Step 4
+            if st.button("Passa allo Step 4 - Analisi Successiva", key='step_4_button_after_imputation'):
+                st.session_state['proceed_to_step_4'] = True
+
+# STEP 4: Analisi Successiva
+# ----------------------------------------
+if st.session_state['proceed_to_step_4']:
+    st.header("Step 4: Analisi Successiva")
+    st.write("In questa sezione verranno eseguite le analisi successive sul dataset pulito.")
