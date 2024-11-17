@@ -37,6 +37,8 @@ if 'imputation_strategy' not in st.session_state:
     st.session_state['imputation_strategy'] = 'mean'
 if 'proceed_to_step_4' not in st.session_state:
     st.session_state['proceed_to_step_4'] = False
+if 'missinghandled_dataset' not in st.session_state:
+    st.session_state['missinghandled_dataset'] = None
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -266,13 +268,12 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
                 st.write(missinghandled_dataset.head())
 
-                # Pulsante per passare allo Step 4 dopo imputazione completata
+                # Imposta il flag per passare allo Step 4
                 st.session_state['proceed_to_step_4'] = True
-                st.experimental_rerun()
 
 # STEP 4: Gestione degli Outlier
 # ----------------------------------------
-if st.session_state['proceed_to_step_4']:
+if st.session_state['proceed_to_step_4'] and st.session_state['missinghandled_dataset'] is not None:
     st.header("Step 4: Gestione degli Outlier")
     st.write("In questa sezione verrà affrontata la gestione degli outlier nel missinghandled_dataset pulito.")
 
@@ -296,13 +297,3 @@ if st.session_state['proceed_to_step_4']:
                 IQR = Q3 - Q1
                 missinghandled_dataset = st.session_state['missinghandled_dataset'][~((st.session_state['missinghandled_dataset'][selected_outlier_variable] < (Q1 - 1.5 * IQR)) | (st.session_state['missinghandled_dataset'][selected_outlier_variable] > (Q3 + 1.5 * IQR)))]
                 st.write("Outlier rimossi con successo.")
-            elif outlier_method == "Sostituisci con la mediana":
-                Q1 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.25)
-                Q3 = st.session_state['missinghandled_dataset'][selected_outlier_variable].quantile(0.75)
-                IQR = Q3 - Q1
-                median_value = st.session_state['missinghandled_dataset'][selected_outlier_variable].median()
-                st.session_state['missinghandled_dataset'][selected_outlier_variable] = st.session_state['missinghandled_dataset'][selected_outlier_variable].apply(lambda x: median_value if (x < (Q1 - 1.5 * IQR)) or (x > (Q3 + 1.5 * IQR)) else x)
-                st.write("Outlier sostituiti con la mediana con successo.")  
-            elif outlier_method == "Winsorize":
-                from scipy.stats.mstats import winsorize
-
