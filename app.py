@@ -267,8 +267,8 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 st.write(missinghandled_dataset.head())
 
                 # Pulsante per passare allo Step 4 dopo imputazione completata
-                if st.button("Passa allo Step 4 - Gestione degli Outlier", key='step_4_button_after_imputation'):
-                    st.session_state['proceed_to_step_4'] = True
+                st.session_state['proceed_to_step_4'] = True
+                st.experimental_rerun()
 
 # STEP 4: Gestione degli Outlier
 # ----------------------------------------
@@ -304,7 +304,7 @@ if st.session_state['proceed_to_step_4']:
                 st.session_state['missinghandled_dataset'][selected_outlier_variable] = st.session_state['missinghandled_dataset'][selected_outlier_variable].apply(lambda x: median_value if (x < (Q1 - 1.5 * IQR)) or (x > (Q3 + 1.5 * IQR)) else x)
                 st.write("Outlier sostituiti con la mediana con successo.")
             elif outlier_method == "Winsorize":
-                from scipy.stats.mstats import winsorize
+                 from scipy.stats.mstats import winsorize
                 st.session_state['missinghandled_dataset'][selected_outlier_variable] = winsorize(st.session_state['missinghandled_dataset'][selected_outlier_variable], limits=[0.05, 0.05])
                 st.write("Outlier winsorizzati con successo.")
 
