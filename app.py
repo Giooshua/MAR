@@ -266,8 +266,42 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
             if st.button("Passa allo Step 4 - Analisi Successiva", key='step_4_button_after_imputation'):
                 st.session_state['proceed_to_step_4'] = True
 
-# STEP 4: Analisi Successiva
+# STEP 4: Gestione degli Outlier
 # ----------------------------------------
 if st.session_state['proceed_to_step_4']:
-    st.header("Step 4: Analisi Successiva")
-    st.write("In questa sezione verranno eseguite le analisi successive sul dataset pulito.")
+    st.header("Step 4: Gestione degli Outlier")
+    st.write("In questa sezione verrà affrontata la gestione degli outlier nel dataset pulito.")
+
+    # Seleziona le variabili numeriche per la gestione degli outlier
+    numeric_columns = final_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns
+    selected_outlier_variable = st.selectbox("Seleziona una variabile per gestire gli outlier:", options=numeric_columns, index=0)
+
+    if selected_outlier_variable:
+        st.write(f"Analisi degli outlier per la variabile: {selected_outlier_variable}")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.boxplot(x=final_dataset[selected_outlier_variable], ax=ax)
+        st.pyplot(fig)
+
+        # Definizione del metodo per gestire gli outlier
+        outlier_method = st.selectbox("Seleziona il metodo per gestire gli outlier:", options=["Rimuovi outlier", "Sostituisci con la mediana", "Winsorize"], index=0)
+
+        if st.button("Applica Gestione degli Outlier"):
+            if outlier_method == "Rimuovi outlier":
+                Q1 = final_dataset[selected_outlier_variable].quantile(0.25)
+                Q3 = final_dataset[selected_outlier_variable].quantile(0.75)
+                IQR = Q3 - Q1
+                filtered_dataset = final_dataset[~((final_dataset[selected_outlier_variable] < (Q1 - 1.5 * IQR)) | (final_dataset[selected_outlier_variable] > (Q3 + 1.5 * IQR)))]
+                st.write("Outlier rimossi con successo.")
+            elif outlier_method == "Sostituisci con la mediana":
+                Q1 = final_dataset[selected_outlier_variable].quantile(0.25)
+                Q3 = final_dataset[selected_outlier_variable].quantile(0.75)
+                IQR = Q3 - Q1
+                median_value = final_dataset[selected_outlier_variable].median()
+                final_dataset[selected_outlier_variable] = final_dataset[selected_outlier_variable].apply(lambda x: median_value if (x < (Q1 - 1.5 * IQR)) or (x > (Q3 + 1.5 * IQR)) else x)
+                st.write("Outlier sostituiti con la mediana con successo.")
+            elif outlier_method == "Winsorize":
+                from scipy.stats.mstats import winsorize
+                final_dataset[selected_outlier_variable] = winsorize(final_dataset[selected_outlier_variable], limits=[0.05, 0.05])
+                st.write("Outlier winsorizzati con successo.")
+
+            st.write(final_dataset.head())
