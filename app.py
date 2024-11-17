@@ -33,8 +33,6 @@ if 'exclude_observations' not in st.session_state:
     st.session_state['exclude_observations'] = []
 if 'imputation_strategy' not in st.session_state:
     st.session_state['imputation_strategy'] = 'mean'
-if 'proceed_to_imputation' not in st.session_state:
-    st.session_state['proceed_to_imputation'] = False
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -222,11 +220,10 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
             suggestion = "Potrebbe essere opportuno utilizzare una combinazione di strategie per l'imputazione."
 
         st.info(suggestion)
-        if st.button("Vuoi procedere con l'imputazione suggerita?", key='proceed_to_imputation'):
-            st.session_state['proceed_to_imputation'] = True
+        proceed_to_imputation = st.button("Vuoi procedere con l'imputazione suggerita?", key='proceed_to_imputation')
 
         # Imputazione dei Dati Mancanti
-        if st.session_state['proceed_to_imputation']:
+        if proceed_to_imputation:
             st.markdown("### Imputazione dei Dati Mancanti")
             st.session_state['imputation_strategy'] = st.selectbox("Seleziona la strategia di imputazione:", options=['mean', 'median', 'most_frequent', 'constant'], index=0)
             if st.button("Applica Imputazione"):
