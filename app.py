@@ -5,13 +5,16 @@ import seaborn as sns
 import time
 import missingno as msno
 import numpy as np
-from statsmodels.stats.diagnostic import kstest_normal  # For MCAR analysis replacement
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🤔")
 
 # Titolo e logo dell'applicazione
-st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
+try:
+    st.image("https://i.ibb.co/g6k3gvC/mar-high-resolution-logo-4.png", width=200)
+except Exception as e:
+    st.warning("Non è stato possibile caricare l'immagine del logo.")
+
 st.title("Interfaccia")
 
 # Inizializza lo stato della sessione
@@ -68,13 +71,8 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
 
         with tab1:
             def categorize_variable(column):
-                if dataset[column].dtype in ['float64', 'float32']:
-                    return 'Quantitativa - Continua'
-                elif dataset[column].dtype in ['int64', 'int32']:
-                    if dataset[column].nunique() > 20:  # Se il numero di valori unici è alto, consideriamola continua
-                        return 'Quantitativa - Continua'
-                    else:
-                        return 'Quantitativa - Discreta'
+                if pd.api.types.is_numeric_dtype(dataset[column]):
+                    return 'Quantitativa - Continua' if dataset[column].nunique() > 20 else 'Quantitativa - Discreta'
                 elif dataset[column].nunique() == 2:
                     return 'Binaria'
                 else:
@@ -82,10 +80,9 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
 
             variable_types = pd.DataFrame({
                 'Colonna': dataset.columns,
-                'Tipo': dataset.dtypes,
                 'Categoria': dataset.columns.map(categorize_variable)
             })
-            st.write(variable_types.drop(columns=['Tipo']))
+            st.write(variable_types)
 
         with tab2:
             descriptive_stats = dataset.describe()
@@ -98,7 +95,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 fig, ax = plt.subplots(figsize=(10, 6))
                 if dataset[selected_variable].dtype in ['int64', 'int32']:
                     if variable_types.loc[variable_types['Colonna'] == selected_variable, 'Categoria'].values[0] == 'Quantitativa - Discreta':
-                        sns.barplot(x=dataset[selected_variable].value_counts().index, y=dataset[selected_variable].value_counts().values, ax=ax)
+                        sns.barplot(x=dataset[selected_variable].value_counts().index.astype(str), y=dataset[selected_variable].value_counts().values, ax=ax)
                         ax.set_title(f"Barplot di {selected_variable}")
                     else:
                         sns.histplot(dataset[selected_variable], kde=True, ax=ax, bins=15)
@@ -115,7 +112,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                             dataset[selected_variable] = dataset[selected_variable].apply(lambda x: x if x in top_categories else 'Altro')
                             value_counts = dataset[selected_variable].value_counts()
                             st.session_state['raggruppate_altro'][selected_variable] = altre_categorie
-                    sns.barplot(x=value_counts.index, y=value_counts.values, ax=ax)
+                    sns.barplot(x=value_counts.index.astype(str), y=value_counts.values, ax=ax)
                     ax.set_title(f"Conteggio di {selected_variable}")
                     if (any(len(str(label)) > 4 and label != 'Altro' for label in value_counts.index) or len(value_counts) > 10) and len(value_counts) > 4:
                         plt.xticks(rotation=90, fontsize=10)
@@ -134,6 +131,7 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
                 fig, ax = plt.subplots(figsize=(10, 8))
                 sns.heatmap(dataset[numeric_columns].corr() * 100, annot=True, cmap='crest', ax=ax, fmt='.0f')
                 st.pyplot(fig)
+                plt.close()
             else:
                 st.write("Non ci sono abbastanza variabili numeriche per generare una heatmap delle correlazioni.")
 
@@ -172,10 +170,12 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 plt.ylabel('Numero di Valori Mancanti')
                 plt.title('Valori Mancanti per Variabile')
                 st.pyplot(plt)
+                plt.close()
 
                 msno.matrix(dataset)
                 plt.title('Matrice dei Valori Mancanti nel Dataset')
                 st.pyplot(plt)
+                plt.close()
             else:
                 st.write("Non ci sono valori mancanti nel dataset.")
 
@@ -184,6 +184,7 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 msno.heatmap(dataset)
                 plt.title('Correlazione dei Valori Mancanti tra le Variabili')
                 st.pyplot(plt)
+                plt.close()
             else:
                 st.write("Non ci sono abbastanza dati mancanti per analizzare i pattern di missingness.")
 
@@ -202,25 +203,6 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
                 st.write("Osservazioni escluse in base al criterio specificato.")
             except Exception as e:
                 st.error(f"Errore nel criterio di esclusione: {str(e)}")
-
-        # Analisi MCAR, MAR, MNAR
-        st.markdown("### Analisi MCAR, MAR e MNAR")
-        if filtered_dataset.isnull().sum().sum() > 0:
-            try:
-                # Placeholder for MCAR Test
-                st.write("#### Test MCAR Placeholder")
-                st.warning("Il test MCAR non è attualmente disponibile. Questo è un placeholder per l'analisi successiva.")
-            except Exception as e:
-                st.error(f"Errore durante l'esecuzione del test MCAR: {str(e)}")
-
-            # Analisi visiva per MAR e MNAR
-            st.markdown("#### Analisi Visiva per Identificare MAR e MNAR")
-            sns.pairplot(filtered_dataset, kind="scatter", plot_kws={'alpha':0.3})
-            plt.title('Analisi Visiva delle Relazioni tra le Variabili')
-            st.pyplot(plt)
-            st.info("Se esistono pattern specifici nei valori mancanti, è probabile che i dati siano MAR o MNAR.")
-        else:
-            st.write("Non ci sono abbastanza dati mancanti per eseguire un'analisi MCAR/MAR/MNAR.")
 
         # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
         # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
