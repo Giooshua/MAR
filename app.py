@@ -5,7 +5,7 @@ import seaborn as sns
 import time
 import missingno as msno
 import numpy as np
-from missingpy import LittleMCARTest
+from statsmodels.stats.diagnostic import kstest_normal  # For MCAR analysis replacement
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🤔")
@@ -143,13 +143,13 @@ if st.session_state['proceed_to_step_2'] and uploaded_file is not None:
 
 # STEP 3: Analisi dell'Entità dei Dati Mancanti
 # ----------------------------------------
-if 'proceed_to_step_3' in st.session_state and st.session_state['proceed_to_step_3']:
+if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
     with st.expander("Step 3: Analisi dell'Entità dei Dati Mancanti", expanded=True):
         with st.spinner('Analisi dei dati mancanti in corso...'):
             time.sleep(2)  # Simulazione del tempo di caricamento
 
         # Creazione della dashboard interattiva per l'analisi dei dati mancanti
-        tab1, tab2, tab3, tab4 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness", "Analisi MCAR"])
+        tab1, tab2, tab3 = st.tabs(["Quantificazione dei Dati Mancanti", "Visualizzazioni dei Dati Mancanti", "Pattern di Missingness"])
 
         with tab1:
             missing_summary = pd.DataFrame({
@@ -203,21 +203,28 @@ if 'proceed_to_step_3' in st.session_state and st.session_state['proceed_to_step
             except Exception as e:
                 st.error(f"Errore nel criterio di esclusione: {str(e)}")
 
-        # Analisi MCAR
-        with tab4:
-            st.markdown("### Analisi MCAR")
-            if filtered_dataset.isnull().sum().sum() > 0:
-                try:
-                    # Test di Little per MCAR
-                    mcar_test = LittleMCARTest()
-                    mcar_result = mcar_test.fit(filtered_dataset)
-                    st.write("P-value del test MCAR:", mcar_result.p_value_)
-                    if mcar_result.p_value_ > 0.05:
-                        st.success("I dati mancanti sono probabilmente MCAR (Missing Completely at Random).")
-                    else:
-                        st.warning("I dati mancanti non sono MCAR (Missing Completely at Random).")
-                except Exception as e:
-                    st.error(f"Errore durante l'esecuzione del test MCAR: {str(e)}")
-            else:
-                st.write("Non ci sono abbastanza dati mancanti per eseguire un'analisi MCAR.")
+        # Analisi MCAR, MAR, MNAR
+        st.markdown("### Analisi MCAR, MAR e MNAR")
+        if filtered_dataset.isnull().sum().sum() > 0:
+            try:
+                # Placeholder for MCAR Test
+                st.write("#### Test MCAR Placeholder")
+                st.warning("Il test MCAR non è attualmente disponibile. Questo è un placeholder per l'analisi successiva.")
+            except Exception as e:
+                st.error(f"Errore durante l'esecuzione del test MCAR: {str(e)}")
 
+            # Analisi visiva per MAR e MNAR
+            st.markdown("#### Analisi Visiva per Identificare MAR e MNAR")
+            sns.pairplot(filtered_dataset, kind="scatter", plot_kws={'alpha':0.3})
+            plt.title('Analisi Visiva delle Relazioni tra le Variabili')
+            st.pyplot(plt)
+            st.info("Se esistono pattern specifici nei valori mancanti, è probabile che i dati siano MAR o MNAR.")
+        else:
+            st.write("Non ci sono abbastanza dati mancanti per eseguire un'analisi MCAR/MAR/MNAR.")
+
+        # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
+        # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
+
+        # Imputazione o analisi successiva
+        st.markdown("### Imputazione dei Dati Mancanti")
+        st.write("Le variabili e le osservazioni escluse verranno automaticamente reintegrate dopo l'imputazione per visualizzare il dataset completo.")
