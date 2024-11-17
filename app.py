@@ -302,10 +302,7 @@ if st.session_state['proceed_to_step_4']:
                 IQR = Q3 - Q1
                 median_value = st.session_state['missinghandled_dataset'][selected_outlier_variable].median()
                 st.session_state['missinghandled_dataset'][selected_outlier_variable] = st.session_state['missinghandled_dataset'][selected_outlier_variable].apply(lambda x: median_value if (x < (Q1 - 1.5 * IQR)) or (x > (Q3 + 1.5 * IQR)) else x)
-                st.write("Outlier sostituiti con la mediana con successo.")
+                st.write("Outlier sostituiti con la mediana con successo.")  
             elif outlier_method == "Winsorize":
-                 from scipy.stats.mstats import winsorize
-                st.session_state['missinghandled_dataset'][selected_outlier_variable] = winsorize(st.session_state['missinghandled_dataset'][selected_outlier_variable], limits=[0.05, 0.05])
-                st.write("Outlier winsorizzati con successo.")
+                from scipy.stats.mstats import winsorize
 
-            st.write(st.session_state['missinghandled_dataset'].head())
