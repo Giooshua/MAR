@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import time
 import missingno as msno
-from statsmodels.stats.missing import test_mcar  # Little's MCAR test
+from statsmodels.imputation.mcar import test_mcar  # Little's MCAR test
 import numpy as np
 
 # Titolo dell'applicazione
