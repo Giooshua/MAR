@@ -5,7 +5,9 @@ import seaborn as sns
 import time
 import missingno as msno
 import numpy as np
-from sklearn.impute import SimpleImputer
+from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🤔")
@@ -210,25 +212,39 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
         # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
 
+        # Selezione della Strategia di Imputazione
+        st.markdown("### Seleziona la Strategia di Imputazione")
+        st.session_state['imputation_strategy'] = st.selectbox("Seleziona la strategia di imputazione:", options=['Media', 'Mediana', 'Più frequente', 'Iterative Imputer', 'KNN Imputer'], index=0)
+        
         # Suggerimento per l'Imputazione dei Dati Mancanti
-        st.markdown("### Suggerimento per l'Imputazione dei Dati Mancanti")
-        if missing_summary['Percentuale Mancante (%)'].max() > 50:
-            suggestion = "Ti suggerisco di utilizzare la strategia 'most_frequent' per le variabili con alta percentuale di valori mancanti."
-        elif missing_summary['Percentuale Mancante (%)'].mean() < 20:
-            suggestion = "Ti suggerisco di utilizzare la strategia 'mean' o 'median' per imputare i valori mancanti."
-        else:
-            suggestion = "Potrebbe essere opportuno utilizzare una combinazione di strategie per l'imputazione."
-
-        st.info(suggestion)
-        proceed_to_imputation = st.button("Vuoi procedere con l'imputazione suggerita?", key='proceed_to_imputation')
+        if st.button("Suggerimento per l'Imputazione"):
+            suggestion = ""
+            if missing_summary['Percentuale Mancante (%)'].max() > 50:
+                suggestion = "MAR ha trovato più del 50% di valori mancanti in alcune variabili. Suggerisce di utilizzare il metodo 'Più frequente' per evitare di introdurre troppa variabilità."
+            elif missing_summary['Percentuale Mancante (%)'].mean() < 20:
+                suggestion = "MAR ha rilevato che la percentuale media di valori mancanti è inferiore al 20%. Si suggerisce di utilizzare 'Media' o 'Mediana' per l'imputazione."
+            elif dataset.corr().abs().max().max() > 0.7:
+                suggestion = "I dati sono altamente correlati. MAR suggerisce di utilizzare 'Iterative Imputer' per mantenere la coerenza tra le variabili."
+            else:
+                suggestion = "Potrebbe essere opportuno utilizzare 'KNN Imputer' se le variabili con valori mancanti sono simili nello spazio delle caratteristiche."
+            
+            st.info(suggestion)
 
         # Imputazione dei Dati Mancanti
-        if proceed_to_imputation:
-            st.markdown("### Imputazione dei Dati Mancanti")
-            st.session_state['imputation_strategy'] = st.selectbox("Seleziona la strategia di imputazione:", options=['mean', 'median', 'most_frequent', 'constant'], index=0)
-            if st.button("Applica Imputazione"):
-                imputer = SimpleImputer(strategy=st.session_state['imputation_strategy'])
-                imputed_data = imputer.fit_transform(filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']))
-                filtered_dataset.loc[:, filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns] = imputed_data
-                st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
-                st.write(filtered_dataset.head())
+        if st.button("Applica Imputazione"):
+            imputation_strategy = st.session_state['imputation_strategy']
+            if imputation_strategy == 'Media':
+                imputer = SimpleImputer(strategy='mean')
+            elif imputation_strategy == 'Mediana':
+                imputer = SimpleImputer(strategy='median')
+            elif imputation_strategy == 'Più frequente':
+                imputer = SimpleImputer(strategy='most_frequent')
+            elif imputation_strategy == 'Iterative Imputer':
+                imputer = IterativeImputer()
+            elif imputation_strategy == 'KNN Imputer':
+                imputer = KNNImputer()
+            
+            imputed_data = imputer.fit_transform(filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']))
+            filtered_dataset.loc[:, filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns] = imputed_data
+            st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
+            st.write(filtered_dataset.head())
