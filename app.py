@@ -5,6 +5,7 @@ import seaborn as sns
 import time
 import missingno as msno
 import numpy as np
+from sklearn.impute import SimpleImputer
 
 # Titolo dell'applicazione
 st.set_page_config(page_title="MAR Algorithm", page_icon="🤔")
@@ -30,6 +31,10 @@ if 'exclude_variables' not in st.session_state:
     st.session_state['exclude_variables'] = []
 if 'exclude_observations' not in st.session_state:
     st.session_state['exclude_observations'] = []
+if 'imputation_strategy' not in st.session_state:
+    st.session_state['imputation_strategy'] = 'mean'
+if 'proceed_to_imputation' not in st.session_state:
+    st.session_state['proceed_to_imputation'] = False
 
 # STEP 1: Caricamento del Dataset
 # ----------------------------------------
@@ -207,6 +212,26 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
         # Analisi successiva da effettuare solo su filtered_dataset senza modificare il dataset originale
         # Il dataset con imputazioni può essere unito al dataset originale, se necessario, per ripristinare le variabili e osservazioni escluse
 
-        # Imputazione o analisi successiva
-        st.markdown("### Imputazione dei Dati Mancanti")
-        st.write("Le variabili e le osservazioni escluse verranno automaticamente reintegrate dopo l'imputazione per visualizzare il dataset completo.")
+        # Suggerimento per l'Imputazione dei Dati Mancanti
+        st.markdown("### Suggerimento per l'Imputazione dei Dati Mancanti")
+        if missing_summary['Percentuale Mancante (%)'].max() > 50:
+            suggestion = "Ti suggerisco di utilizzare la strategia 'most_frequent' per le variabili con alta percentuale di valori mancanti."
+        elif missing_summary['Percentuale Mancante (%)'].mean() < 20:
+            suggestion = "Ti suggerisco di utilizzare la strategia 'mean' o 'median' per imputare i valori mancanti."
+        else:
+            suggestion = "Potrebbe essere opportuno utilizzare una combinazione di strategie per l'imputazione."
+
+        st.info(suggestion)
+        if st.button("Vuoi procedere con l'imputazione suggerita?", key='proceed_to_imputation'):
+            st.session_state['proceed_to_imputation'] = True
+
+        # Imputazione dei Dati Mancanti
+        if st.session_state['proceed_to_imputation']:
+            st.markdown("### Imputazione dei Dati Mancanti")
+            st.session_state['imputation_strategy'] = st.selectbox("Seleziona la strategia di imputazione:", options=['mean', 'median', 'most_frequent', 'constant'], index=0)
+            if st.button("Applica Imputazione"):
+                imputer = SimpleImputer(strategy=st.session_state['imputation_strategy'])
+                imputed_data = imputer.fit_transform(filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']))
+                filtered_dataset.loc[:, filtered_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns] = imputed_data
+                st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
+                st.write(filtered_dataset.head())
