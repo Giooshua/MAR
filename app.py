@@ -262,15 +262,15 @@ if st.session_state['proceed_to_step_3'] and uploaded_file is not None:
             st.write("Dati mancanti imputati con successo utilizzando la strategia selezionata.")
             st.write(final_dataset.head())
 
-            # Pulsante per passare allo Step 4
-            if st.button("Passa allo Step 4 - Analisi Successiva", key='step_4_button_after_imputation'):
-                st.session_state['proceed_to_step_4'] = True
+        # Pulsante per passare allo Step 4 dopo imputazione completata
+        if st.button("Passa allo Step 4 - Gestione degli Outlier", key='step_4_button_after_imputation'):
+            st.session_state['proceed_to_step_4'] = True
 
 # STEP 4: Gestione degli Outlier
 # ----------------------------------------
 if st.session_state['proceed_to_step_4']:
     st.header("Step 4: Gestione degli Outlier")
-    st.write("In questa sezione verrà affrontata la gestione degli outlier nel dataset pulito.")
+    st.write("In questa sezione verrà affrontata la gestione degli outlier nel final_dataset pulito.")
 
     # Seleziona le variabili numeriche per la gestione degli outlier
     numeric_columns = final_dataset.select_dtypes(include=['int64', 'int32', 'float64', 'float32']).columns
