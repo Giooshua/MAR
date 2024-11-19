@@ -4,4 +4,4 @@ matplotlib
 seaborn
 missingno
 missingpy 
-sklearn
+scikit-learn
